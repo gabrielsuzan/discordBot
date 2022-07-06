@@ -5,7 +5,7 @@ from discord.ext import commands
 intents = discord.Intents.all()
 discord.member = True
 bot = commands.Bot(command_prefix="!", intents=intents)
-TOKEN = os.getenv("DISCORD_TOKEN")#"OTkzNDk5NTQ5NzQwMDQwMTkz.GEe4tE.Oafh7enR-OLuBZkWg-uSrOKwMv0tqGXUlFZwHs"
+TOKEN = os.getenv("DISCORD_TOKEN")
 
 @bot.event
 async def on_ready():
