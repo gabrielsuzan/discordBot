@@ -1,6 +1,6 @@
 import os
-# from dotenv import load_dotenv
-# load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 
 # Bot token
 TOKEN = os.getenv("DISCORD_TOKEN")

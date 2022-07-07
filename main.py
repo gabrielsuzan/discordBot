@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import discord
 import config
-import psycopg2
 from discord.ext import commands
 
 intents = discord.Intents.all()
