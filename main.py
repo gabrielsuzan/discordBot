@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+import os
 import discord
-import config
+# import config
 from discord.ext import commands
 
 intents = discord.Intents.all()
@@ -38,7 +39,7 @@ async def on_member_join(member):
     if channel is not None:
         await channel.send(embed=embed)
     
-    newcomer_role = int(config.NEW_USER_ROLE)
+    newcomer_role = int(os.getenv("NEW_USER_ROLE_ID"))
     role = discord.utils.get(member.guild.roles, id=newcomer_role)
     await member.add_roles(role)    
 
@@ -56,4 +57,4 @@ async def ping(ctx):
 #     )
 
 if __name__ == "__main__":
-    bot.run(config.TOKEN)
+    bot.run(os.getenv("DISCORD_TOKEN"))
