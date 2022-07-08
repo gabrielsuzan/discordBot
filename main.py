@@ -5,8 +5,8 @@ from discord_components import DiscordComponents, Button, ActionRow
 from discord.ext import commands
 
 #REMOVER DEPOIS
-from dotenv import load_dotenv
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
 
 intents = discord.Intents.all()
 discord.member = True
