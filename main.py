@@ -11,11 +11,12 @@ import discord
 import locale
 import os
 import psycopg2
+
 # Setar a linguagem
-try:
-    locale.setlocale(locale.LC_ALL, 'pt_BR')
-except:
-    locale.setlocale(locale.LC_ALL, 'Portuguese_Brazil')
+# try:
+#     locale.setlocale(locale.LC_ALL, 'pt_BR')
+# except:
+#     locale.setlocale(locale.LC_ALL, 'Portuguese_Brazil')
 
 #REMOVER DEPOIS
 # from dotenv import load_dotenv
