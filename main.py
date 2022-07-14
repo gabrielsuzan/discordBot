@@ -7,7 +7,6 @@
 from datetime import datetime, timezone
 from discord.ext import commands
 from discord_components import DiscordComponents, Button, ActionRow, interaction
-from dotenv import load_dotenv
 import discord
 import locale
 import os
@@ -19,7 +18,8 @@ except:
     locale.setlocale(locale.LC_ALL, 'Portuguese_Brazil')
 
 #REMOVER DEPOIS
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
 
 # Configs do Discord
 intents = discord.Intents.all()
