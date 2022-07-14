@@ -1,37 +1,49 @@
 # -*- coding: utf-8 -*-
-import os
-import discord
-import psycopg2
-from discord_components import DiscordComponents, Button, ActionRow, interaction
+# TABELAS:
+# presets: preset_name(VARCHAR 30), title (VARCHAR 50), description (TEXT), guide_url (TEXT), image_url(TEXT), buttons (TEXT)(Normal Mode-1415-VALTAN_NM/Hard Mode-1445-VALTAN_HM)(Warrior-1415-Warrior)
+# classes: class_name (VARCHAR 30), class (VARCHAR 20)
+# channels: channel_name (VARCHAR 30), Id (TEXT)[visitante, regras, identifique-se, classes, raids, eventos]
+
+from datetime import datetime, timezone
 from discord.ext import commands
+from discord_components import DiscordComponents, Button, ActionRow, interaction
+from dotenv import load_dotenv
+import discord
+import locale
+import os
+import psycopg2
+# Setar a linguagem
+try:
+    locale.setlocale(locale.LC_ALL, 'pt_BR')
+except:
+    locale.setlocale(locale.LC_ALL, 'Portuguese_Brazil')
 
 #REMOVER DEPOIS
-# from dotenv import load_dotenv
-# load_dotenv()
+load_dotenv()
 
+# Configs do Discord
 intents = discord.Intents.all()
 discord.member = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 DiscordComponents(bot)
 
+# Variaveis do environment
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 DATABASE_URL = os.getenv("DATABASE_URL")
 connection = psycopg2.connect(DATABASE_URL, sslmode = 'require')
 cursor = connection.cursor()
+
+# Inicializando listas e dicts
 channels = {}
 classes = []
 
 NEWCOMER_ROLE_ID = int(os.getenv("NEW_USER_ROLE_ID"))
 # ROLEGIVING_CHANNEL_ID = int(os.getenv("ROLEGIVING_CHANNEL_ID"))
-EVENTPLANNER_CHANNEL_ID = int(os.getenv("EVENTPLANNER_CHANNEL_ID"))
-
-help_command = commands.DefaultHelpCommand(
-    no_category = 'Commands'
-)
+# EVENTPLANNER_CHANNEL_ID = int(os.getenv("EVENTPLANNER_CHANNEL_ID"))
 
 @bot.event
 async def on_ready():   
-    global channels, classes
+    global channels, classes      
     cursor.execute("SELECT * FROM channels")
     result = cursor.fetchall()
     channels = {result[i][0]: int(result[i][1]) for i in range(0, len(result))}
@@ -115,15 +127,35 @@ async def criar_embed(ctx, canal, titulo_preset):
         channel = discord.utils.get(ctx.guild.channels, id = channels[canal])
         await channel.send(embed=embed, components=[action_row])
     else:
-        await ctx.send("Não há nenhum preset com este nome e/ou canal está errado! :(")
+        await ctx.send("Não há nenhum preset com este nome e/ou canal está errado! :slight_frown:")
 
-# @bot.command()
-# async def criar_evento(ctx):
-#     channel = bot.get_channel(EVENTPLANNER_CHANNEL_ID)
-#     embed=discord.Embed(title="Teste - Evento", color=0x0000FF)
-#     buttons = [Button(custom_id='Teste', label='Teste 1')]
-#     action_row = ActionRow(*buttons)
-#     await channel.send(embed=embed, components=[action_row])
+@bot.command()
+async def criar_evento(ctx, datahora=None, title=None, description=None, image_url=None):
+    if datahora is not None: 
+        try:
+            dt = datetime.strptime(datahora, '%d/%m/%Y %H:%M')
+            dt_string = dt.strftime("%A, %d de %B de %Y - %H:%M")
+        except:
+            await ctx.send("Data/hora inválida")
+            return
+    
+    channel = bot.get_channel(channels['eventos'])
+    embed=discord.Embed(title=title, description=description, color=0x0000FF)
+    embed.set_image(url=image_url)
+    embed.add_field(name="Data/Hora", value=dt_string, inline=False)
+    embed.add_field(name="\✅ Presente", value="-", inline=True)
+    embed.add_field(name="❌ Recusado", value="-", inline=True)
+    embed.add_field(name="❔ Sem certeza", value="-", inline=True)
+    embed.set_footer(text=f"Evento criado por: {ctx.author}\nHora: ")
+    embed.timestamp = datetime.now(timezone.utc).astimezone()
+    message = await channel.send(embed=embed)
+    print(message.id)
+    buttons = [Button(custom_id=f'Sim_{message.id}', label='✅ Sim'),
+               Button(custom_id=f'Não_{message.id}', label='❌ Não'),
+               Button(custom_id=f'Tentative_{message.id}', label='❔ Talvez'),
+               Button(custom_id=f'Split_{message.id}', label='Dividir Party')]
+    action_row = ActionRow(*buttons)
+    await message.edit(components=[action_row])
 
 @bot.event
 async def on_button_click(interaction):
@@ -133,11 +165,11 @@ async def on_button_click(interaction):
         
         if has_role: 
             await interaction.author.remove_roles(role) 
-            await interaction.send(content = f"Você não receberá mais avisos de {interaction.custom_id}! :(") 
+            await interaction.send(content = f"Você não receberá mais avisos de {interaction.custom_id}! :slight_frown:") 
         else:
             await interaction.author.add_roles(role)
             events = discord.utils.get(interaction.guild.channels, id = channels['eventos'])
-            await interaction.send(content = f"Você agora receberá avisos de {interaction.custom_id}! Fique de olho em {events.mention} e boa sorte! <3") 
+            await interaction.send(content = f"Você agora receberá avisos de {interaction.custom_id}! Fique de olho em {events.mention} e boa sorte! :hearts:") 
         
         await interaction.send(content = f"Botão {interaction.custom_id} apertado no canal {interaction.channel} pelo usuário {interaction.author}") 
     elif interaction.channel_id == channels['classes']:
@@ -147,15 +179,24 @@ async def on_button_click(interaction):
         if has_role: 
             await interaction.author.remove_roles(role) 
             author_roles.remove(role.name)
-            await interaction.send(content = f"Você não tem mais um(a) {interaction.custom_id} cadastrado(a). :(\n\nSuas classes cadastradas: {set(classes).intersection(author_roles)}") 
+            await interaction.send(content = f"Você não tem mais um(a) {interaction.custom_id} cadastrado(a). :slight_frown:\n\nSuas classes cadastradas: {set(classes).intersection(author_roles)}") 
         else:
             if len(set(classes).intersection(author_roles)) >= 6: 
-                await interaction.send(content = f"Você não pode ter mais de 6 personagens! :( De preferência marque apenas os personagens que ganhem Gold em Raids! <3\n\nSuas classes cadastradas: {set(classes).intersection(author_roles)}")
+                await interaction.send(content = f"Você não pode ter mais de 6 personagens! :slight_frown: De preferência marque apenas os personagens que ganhem Gold em Raids! :hearts:\n\nSuas classes cadastradas: {set(classes).intersection(author_roles)}")
             else:
                 await interaction.author.add_roles(role)
                 author_roles.append(interaction.custom_id)
-                await interaction.send(content = f"Agora você tem um(a) {interaction.custom_id} cadastrado(a)!\n\nSuas classes cadastradas: {set(classes).intersection(author_roles)}")
-        # buttons = [Button(custom_id='Teste1', label='Teste 1'),Button(custom_id='Teste2', label='Teste 2'),Button(custom_id='Teste3', label='Teste 3'),Button(custom_id='Teste4', label='Teste 4'),Button(custom_id='Teste5', label='Teste 5')]
+                await interaction.send(content = f"Agora você tem um(a) {interaction.custom_id} cadastrado(a)! :hearts:\n\nSuas classes cadastradas: {set(classes).intersection(author_roles)}")
+    elif interaction.channel_id == channels['eventos']:
+        channel = bot.get_channel(channels['eventos'])
+        msg_option, msg_id = interaction.custom_id.split('_')
+        message = await channel.fetch_message(msg_id)
+        
+        clone_embed = message.embeds[0]
+        clone_embed.set_field_at(1, name="\✅ Presente", value="> Teste\n", inline=True)
+        await message.edit(embed=clone_embed)
+
+    # buttons = [Button(custom_id='Teste1', label='Teste 1'),Button(custom_id='Teste2', label='Teste 2'),Button(custom_id='Teste3', label='Teste 3'),Button(custom_id='Teste4', label='Teste 4'),Button(custom_id='Teste5', label='Teste 5')]
         # action_row1 = ActionRow(*buttons)
         # buttons2 = [Button(custom_id='Teste6', label='Teste 6'),Button(custom_id='Teste7', label='Teste 7'),Button(custom_id='Teste8', label='Teste 8'),Button(custom_id='Teste9', label='Teste 9'),Button(custom_id='Teste10', label='Teste 10')]
         # action_row2 = ActionRow(*buttons2)
