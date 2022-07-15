@@ -4,19 +4,13 @@
 # classes: class_name (VARCHAR 30), class (VARCHAR 20)
 # channels: channel_name (VARCHAR 30), Id (TEXT)[visitante, regras, identifique-se, classes, raids, eventos]
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta
 from discord.ext import commands
-from discord_components import DiscordComponents, Button, ActionRow, interaction
+from discord_components import DiscordComponents, Button, Select, SelectOption, ActionRow, interaction
 import discord
 import locale
 import os
 import psycopg2
-
-# Setar a linguagem
-try:
-    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-except:
-    locale.setlocale(locale.LC_ALL, 'Portuguese_Brazil')
 
 #REMOVER DEPOIS
 # from dotenv import load_dotenv
@@ -44,7 +38,7 @@ NEWCOMER_ROLE_ID = int(os.getenv("NEW_USER_ROLE_ID"))
 
 @bot.event
 async def on_ready():   
-    global channels, classes      
+    global channels, classes    
     cursor.execute("SELECT * FROM channels")
     result = cursor.fetchall()
     channels = {result[i][0]: int(result[i][1]) for i in range(0, len(result))}
@@ -148,15 +142,13 @@ async def criar_evento(ctx, datahora=None, title=None, description=None, image_u
     embed.add_field(name="❌ Recusado", value="-", inline=True)
     embed.add_field(name="❔ Sem certeza", value="-", inline=True)
     embed.set_footer(text=f"Evento criado por: {ctx.author}\nHora: ")
-    embed.timestamp = datetime.now(timezone.utc).astimezone()
-    message = await channel.send(embed=embed)
-    print(message.id)
-    buttons = [Button(custom_id=f'Sim_{message.id}', label='✅ Sim'),
-               Button(custom_id=f'Não_{message.id}', label='❌ Não'),
-               Button(custom_id=f'Tentative_{message.id}', label='❔ Talvez'),
-               Button(custom_id=f'Split_{message.id}', label='Dividir Party')]
+    embed.timestamp = datetime.now() + timedelta(hours=3)
+    buttons = [Button(custom_id=f'Participar', label='✅ Participar'),
+               Button(custom_id=f'Recusar', label='❌ Recusar'),
+               Button(custom_id=f'Tentative', label='❔ Talvez'),
+               Button(custom_id=f'Split', label='Dividir Party')]
     action_row = ActionRow(*buttons)
-    await message.edit(components=[action_row])
+    await channel.send(embed=embed, components=[action_row])
 
 @bot.event
 async def on_button_click(interaction):
@@ -173,6 +165,8 @@ async def on_button_click(interaction):
             await interaction.send(content = f"Você agora receberá avisos de {interaction.custom_id}! Fique de olho em {events.mention} e boa sorte! :hearts:") 
         
         await interaction.send(content = f"Botão {interaction.custom_id} apertado no canal {interaction.channel} pelo usuário {interaction.author}") 
+    
+    
     elif interaction.channel_id == channels['classes']:
         has_role, role = giveRole(interaction)
         author_roles = [role.name for role in interaction.author.roles]
@@ -188,22 +182,36 @@ async def on_button_click(interaction):
                 await interaction.author.add_roles(role)
                 author_roles.append(interaction.custom_id)
                 await interaction.send(content = f"Agora você tem um(a) {interaction.custom_id} cadastrado(a)! :hearts:\n\nSuas classes cadastradas: {set(classes).intersection(author_roles)}")
-    elif interaction.channel_id == channels['eventos']:
-        channel = bot.get_channel(channels['eventos'])
-        msg_option, msg_id = interaction.custom_id.split('_')
-        message = await channel.fetch_message(msg_id)
+    
+    
+    elif interaction.channel_id == channels['eventos']: 
+        clone_embed = interaction.message.embeds[0]
+
+        if interaction.custom_id == 'Split':
+            await interaction.send(content = f"Essa funcionalidade ainda não está pronta. :slight_frown:")
+        else:
+            # old_name = clone_embed.fields[index].name
+            # old_text = clone_embed.fields[index].value
+            if interaction.custom_id == 'Participar': 
+                # clone_embed.set_field_at(1, name="\✅ Presente", value="> Teste\n", inline=True)
+                options = []
+                roles = set(classes).intersection([role.name for role in interaction.author.roles])
+                for item in roles:
+                    class_name = item.replace("'", "")
+                    options.append(SelectOption(label=class_name, value=str(interaction.message.id)+"_"+interaction.author.name+"_"+class_name))
+                    print(str(interaction.message.id)+"_"+interaction.author.name+"_"+class_name)
+                await interaction.send(content = "Teste inicial", components=[Select(placeholder = "Selecione uma classe:", options=options)])
+
+            # new_embed = editEmbed(author=interaction.author, message=message, index=1)
+            # elif msg_option == 'Recusar': new_embed = editEmbed(author=interaction.author, message=message, index=2)
+            # elif msg_option == 'Tentative': new_embed = editEmbed(author=interaction.author, message=message, index=3)
+            # await message.edit(embed=new_embed)    
+
+@bot.event
+async def on_select_option(interaction):
+    if interaction.responded: return
+    await interaction.send(content = interaction.values[0])
         
-        clone_embed = message.embeds[0]
-        clone_embed.set_field_at(1, name="\✅ Presente", value="> Teste\n", inline=True)
-        await message.edit(embed=clone_embed)
-
-    # buttons = [Button(custom_id='Teste1', label='Teste 1'),Button(custom_id='Teste2', label='Teste 2'),Button(custom_id='Teste3', label='Teste 3'),Button(custom_id='Teste4', label='Teste 4'),Button(custom_id='Teste5', label='Teste 5')]
-        # action_row1 = ActionRow(*buttons)
-        # buttons2 = [Button(custom_id='Teste6', label='Teste 6'),Button(custom_id='Teste7', label='Teste 7'),Button(custom_id='Teste8', label='Teste 8'),Button(custom_id='Teste9', label='Teste 9'),Button(custom_id='Teste10', label='Teste 10')]
-        # action_row2 = ActionRow(*buttons2)
-        # buttons.append(Button(custom_id=interaction.author.roles[1].name, label=interaction.author.roles[1].name))
-        #, components=[action_row1, action_row2]
-
 def giveRole(interaction):
     has_role = False
     for roles in interaction.author.roles:
