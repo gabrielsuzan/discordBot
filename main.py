@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 from discord.ext import commands
 from discord_components import DiscordComponents, Button, Select, SelectOption, ActionRow, interaction
 import discord
-import locale
 import os
 import psycopg2
 
