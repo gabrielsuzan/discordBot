@@ -12,8 +12,8 @@ import os
 import psycopg2
 
 #REMOVER DEPOIS
-from dotenv import load_dotenv
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
 
 # Configs do Discord
 intents = discord.Intents.all()
