@@ -6,14 +6,14 @@
 
 from datetime import datetime, timedelta
 from discord.ext import commands
-from discord_components import DiscordComponents, Button, Select, SelectOption, ActionRow, interaction
+from discord_components import DiscordComponents, Button, Select, SelectOption, ActionRow
 import discord
 import os
 import psycopg2
 
 #REMOVER DEPOIS
-# from dotenv import load_dotenv
-# load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 
 # Configs do Discord
 intents = discord.Intents.all()
@@ -138,13 +138,13 @@ async def criar_evento(ctx, datahora=None, title=None, description=None, image_u
     embed.set_image(url=image_url)
     embed.add_field(name="Data/Hora", value=dt_string, inline=False)
     embed.add_field(name="\✅ Presente", value="-", inline=True)
-    embed.add_field(name="❌ Recusado", value="-", inline=True)
-    embed.add_field(name="❔ Sem certeza", value="-", inline=True)
+    embed.add_field(name="\❌ Recusado", value="-", inline=True)
+    embed.add_field(name="\❔ Sem certeza", value="-", inline=True)
     embed.set_footer(text=f"Evento criado por: {ctx.author}\nHora: ")
     embed.timestamp = datetime.now() + timedelta(hours=3)
     buttons = [Button(custom_id=f'Participar', label='✅ Participar'),
                Button(custom_id=f'Recusar', label='❌ Recusar'),
-               Button(custom_id=f'Tentative', label='❔ Talvez'),
+               Button(custom_id=f'Tentativa', label='❔ Talvez'),
                Button(custom_id=f'Split', label='Dividir Party')]
     action_row = ActionRow(*buttons)
     await channel.send(embed=embed, components=[action_row])
@@ -162,10 +162,7 @@ async def on_button_click(interaction):
             await interaction.author.add_roles(role)
             events = discord.utils.get(interaction.guild.channels, id = channels['eventos'])
             await interaction.send(content = f"Você agora receberá avisos de {interaction.custom_id}! Fique de olho em {events.mention} e boa sorte! :hearts:") 
-        
-        await interaction.send(content = f"Botão {interaction.custom_id} apertado no canal {interaction.channel} pelo usuário {interaction.author}") 
-    
-    
+            
     elif interaction.channel_id == channels['classes']:
         has_role, role = giveRole(interaction)
         author_roles = [role.name for role in interaction.author.roles]
@@ -184,33 +181,119 @@ async def on_button_click(interaction):
     
     
     elif interaction.channel_id == channels['eventos']: 
-        clone_embed = interaction.message.embeds[0]
-
         if interaction.custom_id == 'Split':
             await interaction.send(content = f"Essa funcionalidade ainda não está pronta. :slight_frown:")
         else:
-            # old_name = clone_embed.fields[index].name
-            # old_text = clone_embed.fields[index].value
             if interaction.custom_id == 'Participar': 
-                # clone_embed.set_field_at(1, name="\✅ Presente", value="> Teste\n", inline=True)
                 options = []
                 roles = set(classes).intersection([role.name for role in interaction.author.roles])
                 for item in roles:
                     class_name = item.replace("'", "")
                     options.append(SelectOption(label=class_name, value=str(interaction.message.id)+"_"+interaction.author.name+"_"+class_name))
-                    print(str(interaction.message.id)+"_"+interaction.author.name+"_"+class_name)
-                await interaction.send(content = "Teste inicial", components=[Select(placeholder = "Selecione uma classe:", options=options)])
-
-            # new_embed = editEmbed(author=interaction.author, message=message, index=1)
-            # elif msg_option == 'Recusar': new_embed = editEmbed(author=interaction.author, message=message, index=2)
-            # elif msg_option == 'Tentative': new_embed = editEmbed(author=interaction.author, message=message, index=3)
-            # await message.edit(embed=new_embed)    
+                await interaction.send(content = "Escolha com qual classe você irá participar do evento:", components=[Select(placeholder = "Selecione uma classe:", options=options)])
+            
+            if interaction.custom_id == "Recusar":
+                event_message = await interaction.channel.fetch_message(interaction.message.id)
+                clone_embed = editEmbed(event_message.embeds[0], interaction.author.name, 2)
+                await event_message.edit(embed=clone_embed)
+                await interaction.respond(type=6)
+            
+            if interaction.custom_id == "Tentativa":
+                event_message = await interaction.channel.fetch_message(interaction.message.id)
+                clone_embed = editEmbed(event_message.embeds[0], interaction.author.name, 3)
+                await event_message.edit(embed=clone_embed)
+                await interaction.respond(type=6)
 
 @bot.event
 async def on_select_option(interaction):
     if interaction.responded: return
-    await interaction.send(content = interaction.values[0])
+    if interaction.channel_id == channels['eventos']: 
+        event_message_id, author_name, author_class = interaction.values[0].split("_")
+        event_message = await interaction.channel.fetch_message(event_message_id)
         
+        response_message = ""
+        clone_embed = event_message.embeds[0]
+        _, participation_text, refusal_text, tentative_text = [field.value for field in clone_embed.fields] # TO DO: refusal, tentative texts
+        
+        if participation_text.find(f"{author_name} ({author_class})") != -1: # se existe, remove
+            participation_text = participation_text.replace(f"> {author_name} ({author_class})", "")
+            if participation_text == "": participation_text = "-"
+            response_message = f"Você removeu sua participação com seu/sua {author_class}. :slight_frown:"
+        else: # senão, adiciona  
+            if participation_text == "-": participation_text = ""
+            participation_text = participation_text + f"\n> {author_name} ({author_class})"
+            response_message = f"Você registrou sua participação com seu/sua {author_class}! Boa sorte {author_name}! :hearts:"
+        
+        if refusal_text.find(f"{author_name}") != -1: # se existe, remove
+            refusal_text = refusal_text.replace(f"> {author_name}", "")
+            if refusal_text == "": refusal_text = "-"
+        clone_embed.set_field_at(2, name="\❌ Recusado", value=refusal_text, inline=True)
+        
+        if tentative_text.find(f"{author_name}") != -1: # se existe, remove
+            tentative_text = tentative_text.replace(f"> {author_name}", "")
+            if tentative_text == "": tentative_text = "-"
+        clone_embed.set_field_at(3, name="\❔ Sem certeza", value=tentative_text, inline=True)
+        
+        clone_embed.set_field_at(1, name="\✅ Presente", value=participation_text, inline=True)
+        await event_message.edit(embed=clone_embed) 
+            
+        await interaction.respond(type=7, content = response_message, components=[])
+    # await interaction.send(content = interaction.values[0])
+
+def editEmbed(embed, author_name, index):
+    # 1 - Participar
+    # 2 - Recusar
+    # 3 - Tentativa
+    clone_embed = embed
+    _, participation_text, refusal_text, tentative_text = [field.value for field in clone_embed.fields]
+    if index == 1:
+        pass
+    elif index == 2:
+        participation_list = participation_text.split("\n")
+        filtered_list = []
+        for member in participation_list:
+            if member.find(f" {author_name} ") == -1: filtered_list.append("\n"+member)
+        filtered_str = ''.join(filtered_list)
+        if filtered_str == "": filtered_str = "-"
+        clone_embed.set_field_at(1, name="\✅ Presente", value=filtered_str, inline=True)
+        
+        if refusal_text.find(f"{author_name}") != -1: # se existe, remove
+            refusal_text = refusal_text.replace(f"> {author_name}", "")
+            if refusal_text == "": refusal_text = "-"
+        else: # senão, adiciona
+            if refusal_text == "-": refusal_text = ""
+            refusal_text = refusal_text + f"\n> {author_name}"
+        clone_embed.set_field_at(2, name="\❌ Recusado", value=refusal_text, inline=True)
+        
+        if tentative_text.find(f"{author_name}") != -1: # se existe, remove
+            tentative_text = tentative_text.replace(f"> {author_name}", "")
+            if tentative_text == "": tentative_text = "-"
+        clone_embed.set_field_at(3, name="\❔ Sem certeza", value=tentative_text, inline=True)
+        
+    elif index == 3:
+        participation_list = participation_text.split("\n")
+        filtered_list = []
+        for member in participation_list:
+            if member.find(f" {author_name} ") == -1: filtered_list.append("\n"+member)
+        filtered_str = ''.join(filtered_list)
+        if filtered_str == "": filtered_str = "-"
+        clone_embed.set_field_at(1, name="\✅ Presente", value=filtered_str, inline=True)
+ 
+        if refusal_text.find(f"{author_name}") != -1: # se existe, remove
+            refusal_text = refusal_text.replace(f"> {author_name}", "")
+            if refusal_text == "": refusal_text = "-"
+        clone_embed.set_field_at(2, name="\❌ Recusado", value=refusal_text, inline=True)
+        
+        if tentative_text.find(f"{author_name}") != -1: # se existe, remove
+            tentative_text = tentative_text.replace(f"> {author_name}", "")
+            if tentative_text == "": tentative_text = "-"
+        else: # senão, adiciona
+            if tentative_text == "-": tentative_text = ""
+            tentative_text = tentative_text + f"\n> {author_name}"
+        clone_embed.set_field_at(3, name="\❔ Sem certeza", value=tentative_text, inline=True)
+    
+    return clone_embed
+
 def giveRole(interaction):
     has_role = False
     for roles in interaction.author.roles:
