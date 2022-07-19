@@ -191,18 +191,18 @@ async def on_button_click(interaction):
                     class_name = item.replace("'", "")
                     options.append(SelectOption(label=class_name, value=str(interaction.message.id)+"_"+interaction.author.name+"_"+class_name))
                 await interaction.send(content = "Escolha com qual classe você irá participar do evento:", components=[Select(placeholder = "Selecione uma classe:", options=options)])
-            
+
             if interaction.custom_id == "Recusar":
-                event_message = await interaction.channel.fetch_message(interaction.message.id)
+                event_message = interaction.message
                 clone_embed = editEmbed(event_message.embeds[0], interaction.author.name, 2)
-                await event_message.edit(embed=clone_embed)
                 await interaction.respond(type=6)
-            
+                await event_message.edit(embed=clone_embed)
+                
             if interaction.custom_id == "Tentativa":
-                event_message = await interaction.channel.fetch_message(interaction.message.id)
+                event_message = interaction.message
                 clone_embed = editEmbed(event_message.embeds[0], interaction.author.name, 3)
-                await event_message.edit(embed=clone_embed)
                 await interaction.respond(type=6)
+                await event_message.edit(embed=clone_embed)
 
 @bot.event
 async def on_select_option(interaction):
@@ -235,10 +235,8 @@ async def on_select_option(interaction):
         clone_embed.set_field_at(3, name="\❔ Sem certeza", value=tentative_text, inline=True)
         
         clone_embed.set_field_at(1, name="\✅ Presente", value=participation_text, inline=True)
-        await event_message.edit(embed=clone_embed) 
-            
         await interaction.respond(type=7, content = response_message, components=[])
-    # await interaction.send(content = interaction.values[0])
+        await event_message.edit(embed=clone_embed) 
 
 def editEmbed(embed, author_name, index):
     # 1 - Participar
