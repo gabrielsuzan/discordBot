@@ -37,7 +37,7 @@ NEWCOMER_ROLE_ID = int(os.getenv("NEW_USER_ROLE_ID"))
 
 @bot.event
 async def on_ready():   
-    global channels, classes    
+    global channels, classes     
     cursor.execute("SELECT * FROM channels")
     result = cursor.fetchall()
     channels = {result[i][0]: int(result[i][1]) for i in range(0, len(result))}
@@ -151,17 +151,16 @@ async def criar_evento(ctx, datahora=None, title=None, description=None, image_u
 
 @bot.event
 async def on_button_click(interaction):
-    if interaction.responded: return
     if interaction.channel_id == channels['raids']:
         has_role, role = giveRole(interaction)
         
-        if has_role: 
+        if has_role:
             await interaction.author.remove_roles(role) 
-            await interaction.send(content = f"Você não receberá mais avisos de {interaction.custom_id}! :slight_frown:") 
+            await interaction.respond(content = f"Você não receberá mais avisos de {interaction.custom_id}! :slight_frown:") 
         else:
             await interaction.author.add_roles(role)
             events = discord.utils.get(interaction.guild.channels, id = channels['eventos'])
-            await interaction.send(content = f"Você agora receberá avisos de {interaction.custom_id}! Fique de olho em {events.mention} e boa sorte! :hearts:") 
+            await interaction.respond(content = f"Você agora receberá avisos de {interaction.custom_id}! Fique de olho em {events.mention} e boa sorte! :hearts:") 
             
     elif interaction.channel_id == channels['classes']:
         has_role, role = giveRole(interaction)
@@ -170,19 +169,19 @@ async def on_button_click(interaction):
         if has_role: 
             await interaction.author.remove_roles(role) 
             author_roles.remove(role.name)
-            await interaction.send(content = f"Você não tem mais um(a) {interaction.custom_id} cadastrado(a). :slight_frown:\n\nSuas classes cadastradas: {set(classes).intersection(author_roles)}") 
+            await interaction.respond(content = f"Você não tem mais um(a) {interaction.custom_id} cadastrado(a). :slight_frown:\n\nSuas classes cadastradas: {set(classes).intersection(author_roles)}")   
         else:
             if len(set(classes).intersection(author_roles)) >= 6: 
-                await interaction.send(content = f"Você não pode ter mais de 6 personagens! :slight_frown: De preferência marque apenas os personagens que ganhem Gold em Raids! :hearts:\n\nSuas classes cadastradas: {set(classes).intersection(author_roles)}")
+                await interaction.respond(content = f"Você não pode ter mais de 6 personagens! :slight_frown: De preferência marque apenas os personagens que ganhem Gold em Raids! :hearts:\n\nSuas classes cadastradas: {set(classes).intersection(author_roles)}")
             else:
                 await interaction.author.add_roles(role)
                 author_roles.append(interaction.custom_id)
-                await interaction.send(content = f"Agora você tem um(a) {interaction.custom_id} cadastrado(a)! :hearts:\n\nSuas classes cadastradas: {set(classes).intersection(author_roles)}")
+                await interaction.respond(content = f"Agora você tem um(a) {interaction.custom_id} cadastrado(a)! :hearts:\n\nSuas classes cadastradas: {set(classes).intersection(author_roles)}")
     
     
     elif interaction.channel_id == channels['eventos']: 
         if interaction.custom_id == 'Split':
-            await interaction.send(content = f"Essa funcionalidade ainda não está pronta. :slight_frown:")
+            await interaction.respond(content = f"Essa funcionalidade ainda não está pronta. :slight_frown:")
         else:
             if interaction.custom_id == 'Participar': 
                 options = []
@@ -190,7 +189,7 @@ async def on_button_click(interaction):
                 for item in roles:
                     class_name = item.replace("'", "")
                     options.append(SelectOption(label=class_name, value=str(interaction.message.id)+"_"+interaction.author.name+"_"+class_name))
-                await interaction.send(content = "Escolha com qual classe você irá participar do evento:", components=[Select(placeholder = "Selecione uma classe:", options=options)])
+                await interaction.respond(content = "Escolha com qual classe você irá participar do evento:", components=[Select(placeholder = "Selecione uma classe:", options=options)])
 
             if interaction.custom_id == "Recusar":
                 event_message = interaction.message
