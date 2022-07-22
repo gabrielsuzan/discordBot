@@ -194,14 +194,12 @@ async def on_button_click(interaction):
             if interaction.custom_id == "Recusar":
                 event_message = interaction.message
                 clone_embed = editEmbed(event_message.embeds[0], interaction.author.name, 2)
-                await interaction.respond(type=6)
-                await event_message.edit(embed=clone_embed)
+                await interaction.edit_origin(embed=clone_embed)
                 
             if interaction.custom_id == "Tentativa":
                 event_message = interaction.message
                 clone_embed = editEmbed(event_message.embeds[0], interaction.author.name, 3)
-                await interaction.respond(type=6)
-                await event_message.edit(embed=clone_embed)
+                await interaction.edit_origin(embed=clone_embed)
 
 @bot.event
 async def on_select_option(interaction):
