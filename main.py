@@ -36,11 +36,7 @@ admin_roles = []
 
 @bot.event
 async def on_ready():   
-    global channels, classes, roles, admin_roles         
-    cursor.execute("UPDATE event_presets SET role_to_ping = 'Valtan_NM' WHERE preset_name = 'Valtan_Normal'")
-    cursor.execute("UPDATE event_presets SET role_to_ping = 'Valtan_HM' WHERE preset_name = 'Valtan_Hard'")
-    connection.commit()
-     
+    global channels, classes, roles, admin_roles             
     cursor.execute("SELECT * FROM channels")
     result = cursor.fetchall()
     channels = {result[i][0]: int(result[i][1]) for i in range(0, len(result))}
