@@ -36,7 +36,11 @@ admin_roles = []
 
 @bot.event
 async def on_ready():   
-    global channels, classes, roles, admin_roles   
+    global channels, classes, roles, admin_roles         
+    cursor.execute("UPDATE event_presets SET role_to_ping = 'Valtan_NM' WHERE preset_name = 'Valtan_Normal'")
+    cursor.execute("UPDATE event_presets SET role_to_ping = 'Valtan_HM' WHERE preset_name = 'Valtan_Hard'")
+    connection.commit()
+     
     cursor.execute("SELECT * FROM channels")
     result = cursor.fetchall()
     channels = {result[i][0]: int(result[i][1]) for i in range(0, len(result))}
@@ -113,8 +117,8 @@ async def executeSQL(ctx, sql):
 async def criar_embed(ctx, canal, titulo_preset):
     if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
         cursor.execute(f"SELECT title, description, guide_url, image_url, buttons FROM presets WHERE preset_name = '{titulo_preset}'")
-        result = cursor.fetchall()[0]
-        if result is not None and channels[canal] is not None:
+        if len(cursor.fetchall()) and channels[canal] is not None:
+            result = cursor.fetchall()[0]
             embed=discord.Embed(title=result[0], description=result[1], url=result[2], color=0xFF5733)
             embed.set_image(url=result[3])
             
@@ -133,31 +137,66 @@ async def criar_embed(ctx, canal, titulo_preset):
         await ctx.send("Você não tem permissão para executar esse comando!")
 
 @bot.command()
-async def criar_evento(ctx, datahora=None, title=None, description=None, image_url=None, multi_participacao=True, max_pt_size=8):
+async def criar_evento(ctx, datahora=None, nome_preset=None):
     if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
-        if datahora is not None: 
-            try:
-                dt = datetime.strptime(datahora, '%d/%m/%Y %H:%M')
-                dt_string = dt.strftime("%A, %d de %B de %Y - %H:%M")
-            except:
-                await ctx.send("Data/hora inválida")
-                return
+        cursor.execute(f"SELECT role_to_ping, title, description, image_url, multi_participation, max_pt_size FROM event_presets WHERE preset_name = '{nome_preset}'")
+        if len(cursor.fetchall()):
+            result = cursor.fetchall()[0]
+            if datahora is not None: 
+                try:
+                    dt = datetime.strptime(datahora, '%d/%m/%Y %H:%M')
+                    dt_string = dt.strftime("%A, %d de %B de %Y - %H:%M")
+                except:
+                    await ctx.send("Data/hora inválida")
+                    return
+            #<@&ROLE_ID>s)
+            if result[0] == 'everyone': role = ctx.guild.default_role
+            else: role = discord.utils.get(ctx.guild.roles, name=result[0])
+            
+            channel = bot.get_channel(channels['eventos'])
+            embed=discord.Embed(title=result[1], description=result[2], color=0x0000FF)
+            embed.set_image(url=result[3])
+            embed.add_field(name="Data/Hora", value=dt_string, inline=False)
+            embed.add_field(name="\✅ Presente", value="-", inline=True)
+            embed.add_field(name="\❌ Recusado", value="-", inline=True)
+            embed.add_field(name="\❔ Sem certeza", value="-", inline=True)
+            embed.set_footer(text=f"Evento criado por: {ctx.author}\nHora: ")
+            embed.timestamp = datetime.now() + timedelta(hours=3)
+            
+            multi_participation = str(result[4])
+            max_pt_size = str(result[5])
+            buttons = [Button(custom_id=f'Participar_{multi_participation}', label='✅ Participar'),
+                       Button(custom_id=f'Recusar', label='❌ Recusar'),
+                       Button(custom_id=f'Tentativa', label='❔ Talvez'),
+                       Button(custom_id=f'Split_{max_pt_size}', label='Dividir Party')]
+            action_row = ActionRow(*buttons)
+            
+            if result[0] == 'everyone': await channel.send(content=f"{role}", embed=embed, components=[action_row])
+            else: await channel.send(content=f"{role.mention}", embed=embed, components=[action_row])
+        else:
+            await ctx.send("Não há nenhum preset com este nome! (Dica: cheque os presets com !presets) :slight_frown:")
+    else:
+        await ctx.send("Você não tem permissão para executar esse comando!")
         
-        channel = bot.get_channel(channels['eventos'])
-        embed=discord.Embed(title=title, description=description, color=0x0000FF)
-        embed.set_image(url=image_url)
-        embed.add_field(name="Data/Hora", value=dt_string, inline=False)
-        embed.add_field(name="\✅ Presente", value="-", inline=True)
-        embed.add_field(name="\❌ Recusado", value="-", inline=True)
-        embed.add_field(name="\❔ Sem certeza", value="-", inline=True)
-        embed.set_footer(text=f"Evento criado por: {ctx.author}\nHora: ")
-        embed.timestamp = datetime.now() + timedelta(hours=3)
-        buttons = [Button(custom_id=f'Participar_{multi_participacao}', label='✅ Participar'),
-                   Button(custom_id=f'Recusar', label='❌ Recusar'),
-                   Button(custom_id=f'Tentativa', label='❔ Talvez'),
-                   Button(custom_id=f'Split_{max_pt_size}', label='Dividir Party')]
-        action_row = ActionRow(*buttons)
-        await channel.send(embed=embed, components=[action_row])
+@bot.command()
+async def presets(ctx):
+    if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
+        sql = "SELECT preset_name FROM presets"
+        cursor.execute(sql)
+        result = [name[0] for name in cursor.fetchall()]
+        
+        str_output = "**EMBEDS:**\n"
+        for item in result:
+            str_output = str_output + "- " + item + "\n"
+        
+        str_output = str_output + "\n**PRESETS EVENTOS:**\n";    
+        sql = "SELECT preset_name FROM event_presets"
+        cursor.execute(sql)
+        result = [name[0] for name in cursor.fetchall()]
+        for item in result:
+            str_output = str_output + "- " + item + "\n"
+                
+        await ctx.send(str_output)
     else:
         await ctx.send("Você não tem permissão para executar esse comando!")
 
