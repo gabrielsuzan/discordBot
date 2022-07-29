@@ -36,7 +36,8 @@ admin_roles = []
 
 @bot.event
 async def on_ready():   
-    global channels, classes, roles, admin_roles             
+    global channels, classes, roles, admin_roles       
+    # cursor.execute("UPDATE presets SET buttons = 'Artillerist-null-Artillerist/Deadeye-null-Deadeye/Gunslinger-null-Gunslinger/Sharpshooter-null-Sharpshooter/Machinist-null-Machinist' WHERE preset_name = 'Gunner'")
     cursor.execute("SELECT * FROM channels")
     result = cursor.fetchall()
     channels = {result[i][0]: int(result[i][1]) for i in range(0, len(result))}
@@ -82,16 +83,20 @@ async def on_member_join(member):
 @bot.command()
 async def selectSQL(ctx, table, where=None):
     if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
-        sql = f"SELECT * FROM {table}"
-        if where is not None: sql = sql + f" WHERE {where}"
-        cursor.execute(sql)
-        result = cursor.fetchall()
-        await ctx.send(result)
+        try:
+            sql = f"SELECT * FROM {table}"
+            if where is not None: sql = sql + f" WHERE {where}"
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            await ctx.send(result)
+        except:
+            await ctx.send("Erro ao executar o comando SQL!")
     else:
         await ctx.send("Você não tem permissão para executar esse comando!")
 
 @bot.command()
 async def executeSQL(ctx, sql):
+    print(sql)
     if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
         try:
             cursor.execute(sql)
@@ -102,19 +107,31 @@ async def executeSQL(ctx, sql):
     else:
         await ctx.send("Você não tem permissão para executar esse comando!")
         
-# @bot.command()
-# async def ping(ctx):
+@bot.command(
+    help="!nova_classe 'subclasse' 'classe'\nExemplo: !nova_classe 'Machinist' 'Gunner'",
+    brief="Insere nova classe no BD."
+    )
+async def nova_classe(ctx, subclasse, classe):
+    if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
+        try:
+            cursor.execute(f"INSERT INTO classes(class_name, class) VALUES ('{classe}','{subclasse}')")
+            connection.commit()
+            await ctx.send("Nova classe inserida!")
+        except:
+            await ctx.send("Erro ao executar o comando SQL!")
+    else:
+        await ctx.send("Você não tem permissão para executar esse comando!")
 #     await ctx.send("pong")
 
 @bot.command(
     help="!criar_embed canal preset\n\nExemplo: !criar_embed raids Valtan",
-    brief="Cria uma embed com base na tabela presets. (Use !help criar_embed)"
+    brief="Cria uma embed com base na tabela presets."
     )
 async def criar_embed(ctx, canal, titulo_preset):
     if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
         cursor.execute(f"SELECT title, description, guide_url, image_url, buttons FROM presets WHERE preset_name = '{titulo_preset}'")
-        if len(cursor.fetchall()) and channels[canal] is not None:
-            result = cursor.fetchall()[0]
+        result = cursor.fetchone()
+        if result is not None and channels[canal] is not None:
             embed=discord.Embed(title=result[0], description=result[1], url=result[2], color=0xFF5733)
             embed.set_image(url=result[3])
             
@@ -132,7 +149,10 @@ async def criar_embed(ctx, canal, titulo_preset):
     else:
         await ctx.send("Você não tem permissão para executar esse comando!")
 
-@bot.command()
+@bot.command(
+    help="!criar_evento data_hora* preset\n*:formato dd/mm/aaaa hh:mm\n\nExemplo: !criar_evento '27/07/2022 22:00' Valtan",
+    brief="Cria um evento com base na tabela event_presets."
+    )
 async def criar_evento(ctx, datahora=None, nome_preset=None):
     if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
         cursor.execute(f"SELECT role_to_ping, title, description, image_url, multi_participation, max_pt_size FROM event_presets WHERE preset_name = '{nome_preset}'")
