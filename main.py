@@ -13,8 +13,8 @@ import os
 import psycopg2
 
 #REMOVER DEPOIS
-# from dotenv import load_dotenv
-# load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 
 # Configs do Discord
 intents = discord.Intents.all()
@@ -136,8 +136,9 @@ async def criar_embed(ctx, canal, titulo_preset):
 async def criar_evento(ctx, datahora=None, nome_preset=None):
     if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
         cursor.execute(f"SELECT role_to_ping, title, description, image_url, multi_participation, max_pt_size FROM event_presets WHERE preset_name = '{nome_preset}'")
-        if len(cursor.fetchall()):
-            result = cursor.fetchall()[0]
+        result = cursor.fetchone()
+
+        if result is not None:
             if datahora is not None: 
                 try:
                     dt = datetime.strptime(datahora, '%d/%m/%Y %H:%M')
@@ -148,7 +149,7 @@ async def criar_evento(ctx, datahora=None, nome_preset=None):
             #<@&ROLE_ID>s)
             if result[0] == 'everyone': role = ctx.guild.default_role
             else: role = discord.utils.get(ctx.guild.roles, name=result[0])
-            
+    
             channel = bot.get_channel(channels['eventos'])
             embed=discord.Embed(title=result[1], description=result[2], color=0x0000FF)
             embed.set_image(url=result[3])
@@ -156,16 +157,18 @@ async def criar_evento(ctx, datahora=None, nome_preset=None):
             embed.add_field(name="\✅ Presente", value="-", inline=True)
             embed.add_field(name="\❌ Recusado", value="-", inline=True)
             embed.add_field(name="\❔ Sem certeza", value="-", inline=True)
+            embed.add_field(name="\📆 Marcar outro dia", value="-", inline=True)
             embed.set_footer(text=f"Evento criado por: {ctx.author}\nHora: ")
             embed.timestamp = datetime.now() + timedelta(hours=3)
-            
+    
             multi_participation = str(result[4])
             # max_pt_size = str(result[5])
             buttons = [Button(custom_id=f'Participar_{multi_participation}', label='✅ Participar'),
                        Button(custom_id=f'Recusar', label='❌ Recusar'),
-                       Button(custom_id=f'Tentativa', label='❔ Talvez')] #Button(custom_id=f'Split_{max_pt_size}', label='Dividir Party')
+                       Button(custom_id=f'Tentativa', label='❔ Talvez'),
+                       Button(custom_id=f'AnotherDay', label='📆 Marcar outro dia')] #Button(custom_id=f'Split_{max_pt_size}', label='Dividir Party')
             action_row = ActionRow(*buttons)
-            
+    
             if result[0] == 'everyone': await channel.send(content=f"{role}", embed=embed, components=[action_row])
             else: await channel.send(content=f"{role.mention}", embed=embed, components=[action_row])
         else:
@@ -263,6 +266,11 @@ async def on_button_click(interaction):
             event_message = interaction.message
             clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.author.name, index=3)
             await interaction.edit_origin(embed=clone_embed)
+            
+        if custom_id == "AnotherDay":
+            event_message = interaction.message
+            clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.author.name, index=4)
+            await interaction.edit_origin(embed=clone_embed)
 
 @bot.event
 async def on_select_option(interaction):
@@ -314,15 +322,16 @@ def editEmbed(embed, author_name, index, author_class=None):
     # 2 - Recusar
     # 3 - Tentativa
     clone_embed = embed
-    _, participation_text, refusal_text, tentative_text = [field.value for field in clone_embed.fields]
+    _, participation_text, refusal_text, tentative_text, anotherday_text = [field.value for field in clone_embed.fields]
     
     participation_list = participation_text.split("\n")
     refusal_list = refusal_text.split("\n")
     tentative_list = tentative_text.split("\n")
+    anotherday_list = anotherday_text.split("\n")
     filtered_list = []
     filtered_str = ''
     
-    for i in range(1, 4):
+    for i in range(1, 5):
         filtered_list.clear()
         filtered_str = ''
         if i == 1:
@@ -334,6 +343,9 @@ def editEmbed(embed, author_name, index, author_class=None):
         if i == 3:
             edit_list = tentative_list
             item_name = "\❔ Sem certeza"
+        if i == 4:
+            edit_list = anotherday_list
+            item_name = "\📆 Marcar outro dia"
         
         if index is not i:             
             for member in edit_list:
