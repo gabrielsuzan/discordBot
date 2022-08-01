@@ -11,6 +11,7 @@ from discord_components import DiscordComponents, Button, ActionRow, Select, Sel
 import discord
 import os
 import psycopg2
+import asyncio
 
 #REMOVER DEPOIS
 # from dotenv import load_dotenv
@@ -220,6 +221,10 @@ async def presets(ctx):
 
 @bot.event
 async def on_button_click(interaction):
+    def check(msg):
+        if msg.author.id == interaction.author.id: return True
+        else: return False
+    
     if interaction.channel_id == channels['raids']:
         has_role, role = giveRole(interaction)
         
@@ -264,11 +269,12 @@ async def on_button_click(interaction):
                     options.append(SelectOption(label=class_name, value=class_name))
                 
                 await interaction.send(content = "Escolha com qual classe você irá participar do evento:", components=[Select(placeholder = "Selecione uma classe:", options=options)])
-                result = await bot.wait_for("select_option")
+                result = await bot.wait_for("select_option", check=check)
                 author_class = result.values[0]
-                clone_embed = editEmbed(embed=interaction.message.embeds[0], author_name=interaction.author.name, author_class=author_class, index=1)
-                await interaction.message.edit(embed=clone_embed)
-                # await question.delete()
+                msg = await interaction.channel.fetch_message(interaction.message.id)
+                clone_embed = editEmbed(embed=msg.embeds[0], author_name=interaction.author.name, author_class=author_class, index=1)
+                # await interaction.message.edit(embed=clone_embed)
+                await edit_message_embed(interaction.message, clone_embed)
             else:
                 event_message = interaction.message
                 clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.author.name, index=1)
@@ -296,46 +302,15 @@ async def on_button_click(interaction):
 async def on_select_option(interaction):
     if interaction.responded: return
     try:
+        await asyncio.sleep(0.75)
         await interaction.edit_origin(content='Boa sorte! :hearts:', components=[], delete_after=10)
     except:
         print("Erro ao tentar finalizar interação!")
-#     if interaction.channel_id == channels['eventos']: 
-#         author_name, author_class = interaction.values[0].split("_")
-#         event_message = await interaction.channel.fetch_message(interaction.raw_data['message']['message_reference']['message_id'])
-#
-#         clone_embed = event_message.embeds[0]
-#         _, participation_text, refusal_text, tentative_text = [field.value for field in clone_embed.fields] # TO DO: refusal, tentative texts
-#         participation_list = participation_text.split("\n")
-#         refusal_list = refusal_text.split("\n")
-#         tentative_list = tentative_text.split("\n")
-#         filtered_list = []
-#
-#         if participation_text.find(f"{author_name} ({author_class})") != -1: # se existe, remove
-#             for member in participation_list:
-#                 if member.find(f" {author_name} ({author_class})") == -1: filtered_list.append("\n"+member)
-#             participation_text = ''.join(filtered_list)
-#             if participation_text == "": participation_text = "-"
-#         else: # senão, adiciona  
-#             if participation_text == "-": participation_text = ""
-#             participation_text = participation_text + f"\n> {author_name} ({author_class})"
-#         clone_embed.set_field_at(1, name="\✅ Presente", value=participation_text, inline=True)
-#
-#         if refusal_text.find(f"{author_name}") != -1: # se existe, remove
-#             for member in refusal_list:
-#                 if member.find(f" {author_name}") == -1: filtered_list.append("\n"+member)
-#             refusal_text = ''.join(filtered_list)
-#             if refusal_text == "": refusal_text = "-"
-#         clone_embed.set_field_at(2, name="\❌ Recusado", value=refusal_text, inline=True)
-#
-#         if tentative_text.find(f"{author_name}") != -1: # se existe, remove
-#             for member in tentative_list:
-#                 if member.find(f" {author_name}") == -1: filtered_list.append("\n"+member)
-#             tentative_text = ''.join(filtered_list)
-#             if tentative_text == "": tentative_text = "-"
-#         clone_embed.set_field_at(3, name="\❔ Sem certeza", value=tentative_text, inline=True)
-#
-#         await event_message.edit(embed=clone_embed) 
-#         await interaction.respond(type=6)
+        
+@bot.event
+async def edit_message_embed(msg, new_embed):
+    await msg.edit(embed=new_embed)
+    await asyncio.sleep(0.75)
 
 def editEmbed(embed, author_name, index, author_class=None):
     # 1 - Participar
@@ -401,11 +376,6 @@ def giveRole(interaction):
             break
     role = discord.utils.get(interaction.author.guild.roles, id=role_id)
     return has_role, role
-
-def splitParty(message):
-    participation_text = message.embeds[0].fields[1].value.replace("> ","")
-    participation_list = participation_text.split("\n")
-    print(participation_list)
 
 if __name__ == "__main__":
     bot.run(DISCORD_TOKEN)
