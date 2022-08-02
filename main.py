@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 # TABELAS:
 # presets: preset_name(VARCHAR 30), title (VARCHAR 50), description (TEXT), guide_url (TEXT), image_url(TEXT), buttons (TEXT)(Normal Mode-1415-VALTAN_NM/Hard Mode-1445-VALTAN_HM)(Warrior-1415-Warrior)
+# event_presets: preset_name VARCHAR(30), role_to_ping VARCHAR(30), title VARCHAR(50), description TEXT, image_url TEXT, multi_participation BOOLEAN, max_pt_size INTEGER
 # classes: class_name (VARCHAR 30), class (VARCHAR 20)
 # channels: channel_name (VARCHAR 30), Id (TEXT)[visitante, regras, identifique-se, classes, raids, eventos]
-# roles: role_name (VARCHAR 30)[Visitante (0), Guildmate (1), Guild Officer (2), Guild Deputy (3), Guild Master (4)]
+# roles: role_name (VARCHAR 30), Id (TEXT), admin (BOOLEAN)[Visitante (0), Guildmate (1), Guild Officer (2), Guild Deputy (3), Guild Master (4)]
 
 from datetime import datetime, timedelta
 from discord.ext import commands
@@ -37,8 +38,11 @@ admin_roles = []
 
 @bot.event
 async def on_ready():   
-    global channels, classes, roles, admin_roles       
-    # cursor.execute("UPDATE presets SET buttons = 'Artillerist-null-Artillerist/Deadeye-null-Deadeye/Gunslinger-null-Gunslinger/Sharpshooter-null-Sharpshooter/Machinist-null-Machinist' WHERE preset_name = 'Gunner'")
+    global channels, classes, roles, admin_roles
+    cursor.execute("SELECT * FROM presets")
+    result = cursor.fetchall()
+    print(result)
+        
     cursor.execute("SELECT * FROM channels")
     result = cursor.fetchall()
     channels = {result[i][0]: int(result[i][1]) for i in range(0, len(result))}
@@ -80,6 +84,10 @@ async def on_member_join(member):
     
     role = discord.utils.get(member.guild.roles, id=roles["Visitante"])
     await member.add_roles(role)    
+    
+@bot.command()
+async def ping(ctx):
+    await ctx.send("Pong!")
 
 @bot.command()
 async def selectSQL(ctx, table, where=None):
@@ -87,8 +95,10 @@ async def selectSQL(ctx, table, where=None):
         try:
             sql = f"SELECT * FROM {table}"
             if where is not None: sql = sql + f" WHERE {where}"
+            print(sql)
             cursor.execute(sql)
             result = cursor.fetchall()
+            print(result)
             await ctx.send(result)
         except:
             await ctx.send("Erro ao executar o comando SQL!")
@@ -272,12 +282,12 @@ async def on_button_click(interaction):
                 result = await bot.wait_for("select_option", check=check)
                 author_class = result.values[0]
                 msg = await interaction.channel.fetch_message(interaction.message.id)
-                clone_embed = editEmbed(embed=msg.embeds[0], author_name=interaction.author.name, author_class=author_class, index=1)
+                clone_embed = editEmbed(embed=msg.embeds[0], author_name=interaction.author.display_name, author_class=author_class, index=1)
                 # await interaction.message.edit(embed=clone_embed)
                 await edit_message_embed(interaction.message, clone_embed)
             else:
                 event_message = interaction.message
-                clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.author.name, index=1)
+                clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.author.display_name, index=1)
                 try:
                     await interaction.edit_origin(embed=clone_embed)
                 except:
@@ -285,17 +295,17 @@ async def on_button_click(interaction):
 
         if custom_id == "Recusar":
             event_message = interaction.message
-            clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.author.name, index=2)
+            clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.author.display_name, index=2)
             await interaction.edit_origin(embed=clone_embed)
             
         if custom_id == "Tentativa":
             event_message = interaction.message
-            clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.author.name, index=3)
+            clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.author.display_name, index=3)
             await interaction.edit_origin(embed=clone_embed)
             
         if custom_id == "AnotherDay":
             event_message = interaction.message
-            clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.author.name, index=4)
+            clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.author.display_name, index=4)
             await interaction.edit_origin(embed=clone_embed)
 
 @bot.event
