@@ -39,10 +39,6 @@ admin_roles = []
 @bot.event
 async def on_ready():   
     global channels, classes, roles, admin_roles
-    cursor.execute("SELECT * FROM presets")
-    result = cursor.fetchall()
-    print(result)
-        
     cursor.execute("SELECT * FROM channels")
     result = cursor.fetchall()
     channels = {result[i][0]: int(result[i][1]) for i in range(0, len(result))}
