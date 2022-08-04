@@ -49,7 +49,7 @@ async def on_ready():
     cursor.execute("SELECT role_name, id, admin FROM roles")
     result = cursor.fetchall()
     admin_roles = [name[0] for name in result if name[2] is True]
-    roles = {result[i][0]: int(result[i][1]) for i in range(0, len(result))}#[name[0] for name in cursor.fetchall()]
+    roles = {result[i][0]: int(result[i][1]) for i in range(0, len(result))}
     print(f"Logged in as {bot.user.name}({bot.user.id})")
 
 @bot.event
@@ -116,7 +116,7 @@ async def executeSQL(ctx, sql):
         
 @bot.command(
     help="!nova_classe 'subclasse' 'classe'\nExemplo: !nova_classe 'Machinist' 'Gunner'",
-    brief="Insere nova classe no BD."
+    brief="Insere nova classe no BD. (reiniciar bot após)"
     )
 async def nova_classe(ctx, subclasse, classe):
     if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
@@ -160,7 +160,7 @@ async def criar_embed(ctx, canal, titulo_preset):
     help="!criar_evento data_hora* preset\n*:formato dd/mm/aaaa hh:mm\n\nExemplo: !criar_evento '27/07/2022 22:00' Valtan",
     brief="Cria um evento com base na tabela event_presets."
     )
-async def criar_evento(ctx, datahora=None, nome_preset=None):
+async def criar_evento(ctx, datahora=None, nome_preset=None, custom_description=None):
     if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
         cursor.execute(f"SELECT role_to_ping, title, description, image_url, multi_participation, max_pt_size FROM event_presets WHERE preset_name = '{nome_preset}'")
         result = cursor.fetchone()
@@ -173,12 +173,13 @@ async def criar_evento(ctx, datahora=None, nome_preset=None):
                 except:
                     await ctx.send("Data/hora inválida")
                     return
+            else: dt_string = "Não definido"
             #<@&ROLE_ID>s)
             if result[0] == 'everyone': role = ctx.guild.default_role
             else: role = discord.utils.get(ctx.guild.roles, name=result[0])
     
             channel = bot.get_channel(channels['eventos'])
-            embed=discord.Embed(title=result[1], description=result[2], color=0x0000FF)
+            embed=discord.Embed(title=result[1], description=result[2] if custom_description is None else custom_description, color=0x0000FF)
             embed.set_image(url=result[3])
             embed.add_field(name="Data/Hora", value=dt_string, inline=False)
             embed.add_field(name="\✅ Presente", value="-", inline=True)
@@ -186,7 +187,7 @@ async def criar_evento(ctx, datahora=None, nome_preset=None):
             embed.add_field(name="\❔ Sem certeza", value="-", inline=True)
             embed.add_field(name="\📆 Marcar outro dia", value="-", inline=True)
             embed.set_footer(text=f"Evento criado por: {ctx.author}\nHora: ")
-            embed.timestamp = datetime.now() + timedelta(hours=3)
+            embed.timestamp = datetime.now()# + timedelta(hours=3)
     
             multi_participation = str(result[4])
             # max_pt_size = str(result[5])
@@ -202,7 +203,7 @@ async def criar_evento(ctx, datahora=None, nome_preset=None):
             await ctx.send("Não há nenhum preset com este nome! (Dica: cheque os presets com !presets) :slight_frown:")
     else:
         await ctx.send("Você não tem permissão para executar esse comando!")
-        
+
 @bot.command()
 async def presets(ctx):
     if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
@@ -279,7 +280,6 @@ async def on_button_click(interaction):
                 author_class = result.values[0]
                 msg = await interaction.channel.fetch_message(interaction.message.id)
                 clone_embed = editEmbed(embed=msg.embeds[0], author_name=interaction.author.display_name, author_class=author_class, index=1)
-                # await interaction.message.edit(embed=clone_embed)
                 await edit_message_embed(interaction.message, clone_embed)
             else:
                 event_message = interaction.message
@@ -323,12 +323,18 @@ def editEmbed(embed, author_name, index, author_class=None):
     # 2 - Recusar
     # 3 - Tentativa
     clone_embed = embed
-    _, participation_text, refusal_text, tentative_text, anotherday_text = [field.value for field in clone_embed.fields]
+    
+    participation_text = clone_embed.fields[1].value
+    refusal_text = clone_embed.fields[2].value
+    tentative_text = clone_embed.fields[3].value
+    anotherday_text = clone_embed.fields[4].value
+    # _, participation_text, refusal_text, tentative_text, anotherday_text = [field.value for field in clone_embed.fields]
     
     participation_list = participation_text.split("\n")
     refusal_list = refusal_text.split("\n")
     tentative_list = tentative_text.split("\n")
     anotherday_list = anotherday_text.split("\n")
+    
     filtered_list = []
     filtered_str = ''
     
@@ -366,7 +372,13 @@ def editEmbed(embed, author_name, index, author_class=None):
             else: # se não, adiciona
                 filtered_str = '\n'.join(edit_list)
                 if filtered_str == '-': filtered_str = ''
-                filtered_str = filtered_str + f"\n> {author_string}"
+                
+                if len(filtered_str + f"\n> {author_string}") > 1023:
+                    embed.add_field(name="Mais participantes!", value=filtered_str, inline=True)
+                    filtered_str = f"\n> {author_string}"
+                else: 
+                    filtered_str = filtered_str + f"\n> {author_string}"
+        
         clone_embed.set_field_at(i, name=item_name, value=filtered_str, inline=True)
     return clone_embed
 
