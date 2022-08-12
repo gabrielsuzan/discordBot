@@ -1,3 +1,2 @@
-discord.py
-discord_components
+git+https://github.com/Rapptz/discord.py
 psycopg2
