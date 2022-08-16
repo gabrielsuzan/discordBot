@@ -287,7 +287,7 @@ async def on_interaction(interaction):
                 roles = set(classes).intersection([role.name for role in interaction.user.roles])
                 if roles == set():
                     canal_classe = discord.utils.get(interaction.guild.channels, id = channels['classes'])
-                    await interaction.response.send_message(content = f"Antes de participar de um evento, vá em {canal_classe.mention} e escolha as classes que você joga!")
+                    await interaction.response.send_message(content = f"Antes de participar de um evento, vá em {canal_classe.mention} e escolha as classes que você joga!", ephemeral=True)
                     return
                 
                 modal = SeletorClasse(str(interaction.user.id))
