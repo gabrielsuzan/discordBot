@@ -8,7 +8,7 @@
 
 from datetime import datetime
 from discord.ext import commands
-from discord.ui import Button, View, Modal, Select
+from discord.ui import Button, View, Modal, TextInput
 import discord
 import os
 import psycopg2
@@ -40,8 +40,8 @@ class SeletorClasse(Modal):
         super().__init__(title='Selecione sua classe:')
         self.custom_id = custom_id
         self.message_id = None
-        self.select = Select(placeholder='Selecione sua classe', min_values=1)
-        self.add_item(self.select)
+        self.text = TextInput(label="Digite com quais classes você participará:", required=True, min_length=1)
+        self.add_item(self.text)
         
     def check(self, msg):
         if msg.author.id == self.custom_id: return True
@@ -49,10 +49,15 @@ class SeletorClasse(Modal):
         
     async def on_submit(self, interaction: discord.Interaction):
         if str(interaction.user.id) == str(self.custom_id):
-            msg = await interaction.channel.fetch_message(self.message_id)
-            clone_embed = editEmbed(embed=msg.embeds[0], author_name=interaction.user.display_name, author_class=self.select.values, index=1)
-            await edit_message_embed(msg, clone_embed)
-            await interaction.response.send_message("Boa sorte! :hearts:", ephemeral=True)
+            try:
+                classes = self.text.value.replace(' ','').split(',')
+            except:
+                print("Erro.")    
+            else:
+                msg = await interaction.channel.fetch_message(self.message_id)
+                clone_embed = editEmbed(embed=msg.embeds[0], author_name=interaction.user.display_name, author_class=classes, index=1)
+                await edit_message_embed(msg, clone_embed)
+                await interaction.response.send_message("Boa sorte! :hearts:", ephemeral=True)
 
 @bot.event
 async def on_ready():   
@@ -291,11 +296,12 @@ async def on_interaction(interaction):
                     return
                 
                 modal = SeletorClasse(str(interaction.user.id))
-                for item in roles:
-                    class_name = item.replace("'", "")
-                    # options.append(SelectOption(label=class_name, value=class_name))
-                    modal.select.add_option(label=class_name, value=class_name)
-                modal.select.max_values = len(roles)
+                modal.text.default = ", ".join(roles)
+                # for item in roles:
+                #     class_name = item.replace("'", "")
+                #     # options.append(SelectOption(label=class_name, value=class_name))
+                #     modal.select.add_option(label=class_name, value=class_name)
+                # modal.select.max_values = len(roles)
 
                 modal.message_id = interaction.message.id
                 await interaction.response.send_modal(modal)
@@ -378,8 +384,8 @@ def editEmbed(embed, author_name, index, author_class=[]):
                     if member.find(f" {author_name}") == -1: filtered_list.append("\n"+member)
                     else: 
                         if index == 1 and author_class != []:
-                            member_classes = member[member.find("(")+1:member.find(")")].split(',')
-                            filtered_list.append(f"\n> {author_name} ({', '.join(list(set(member_classes)|set(author_class)))})")     
+                            member_classes = member[member.find("(")+1:member.find(")")].replace(' ','').split(',')
+                            filtered_list.append(f"\n> {author_name} ({', '.join(list(set(member_classes)|set(author_class)))})")   
                 filtered_str = ''.join(filtered_list)
                 if filtered_str == "": filtered_str = "-"
             else: # se não, adiciona
