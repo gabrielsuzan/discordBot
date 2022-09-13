@@ -11,8 +11,8 @@ from discord.ui import Button, View, Modal, TextInput
 from discord.ext import commands
 
 #REMOVER DEPOIS
-from dotenv import load_dotenv
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
 
 # Configs do Discord
 intents = discord.Intents.all()
