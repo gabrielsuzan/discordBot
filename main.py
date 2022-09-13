@@ -1,22 +1,18 @@
 # -*- coding: utf-8 -*-
-# TABELAS:
-# presets: preset_name(VARCHAR 30), title (VARCHAR 50), description (TEXT), guide_url (TEXT), image_url(TEXT), buttons (TEXT)(Normal Mode-1415-VALTAN_NM/Hard Mode-1445-VALTAN_HM)(Warrior-1415-Warrior)
-# event_presets: preset_name VARCHAR(30), role_to_ping VARCHAR(30), title VARCHAR(50), description TEXT, image_url TEXT, multi_participation BOOLEAN, max_pt_size INTEGER
-# classes: class_name (VARCHAR 30), class (VARCHAR 20)
-# channels: channel_name (VARCHAR 30), Id (TEXT)[visitante, regras, identifique-se, classes, raids, eventos]
-# roles: role_name (VARCHAR 30), Id (TEXT), admin (BOOLEAN)[Visitante (0), Guildmate (1), Guild Officer (2), Guild Deputy (3), Guild Master (4)]
-
-from datetime import datetime
-from discord.ext import commands
-from discord.ui import Button, View, Modal, TextInput
-import discord
-import os
-import psycopg2
 import asyncio
+from datetime import datetime
+import os
+
+from discord import app_commands
+from discord.app_commands import Choice
+import discord
+from discord.ui import Button, View, Modal, TextInput
+
+from discord.ext import commands
 
 #REMOVER DEPOIS
-# from dotenv import load_dotenv
-# load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 
 # Configs do Discord
 intents = discord.Intents.all()
@@ -25,15 +21,37 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Variaveis do environment
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-DATABASE_URL = os.getenv("DATABASE_URL")
-connection = psycopg2.connect(DATABASE_URL, sslmode = 'require')
-cursor = connection.cursor()
+GUILD_ID = 949037784230920223
 
 # Inicializando listas e dicts
-channels = {}
-classes = []
-roles = {}
-admin_roles = []
+channels = {'visitante': 950761107251953707, 'regras': 950769476192833558, 'identifique-se': 950741476873240636, 'classes': 1004115103169400892, 'raids': 1004114683919355954, 'eventos': 1004115290071765013}
+classes = ['Sorceress', 'Bard', 'Arcanist', 'Berserker', 'Destroyer', 'Gunlancer', 'Paladin', 'Artillerist', 'Deadeye', 'Gunslinger', 'Sharpshooter', 'Glaivier', 'Scrapper', 'Soulfist', 'Striker', 'Wardancer', 'Deathblade', 'Shadowhunter', 'Machinist']
+roles = {'Guildmate': 950772292638617610, 'Guild Officer': 0, 'Guild Deputy': 0, 'Guild Master': 0, 'Visitante': 981541136084631553}
+admin_roles = ['Guild Officer', 'Guild Deputy', 'Guild Master']
+
+# Presets
+presets =  {'Warrior': ['Warrior', '', 'https://cdn-longterm.mee6.xyz/plugins/reaction_roles/images/212635560596996097/91c18dece3b14bf906395f40a21baa9b33dacc53f0722ccf4808a5218e2403e0.png', 'Berserker-null-Berserker/Destroyer-null-Destroyer/Gunlancer-null-Gunlancer/Paladin-null-Paladin', 'Escolha sua sub-classe'],
+            'Martial_Artist': ['Martial Artist', '', 'https://cdn-longterm.mee6.xyz/plugins/reaction_roles/images/212635560596996097/9a08669735eb456ea4738fc486c061cac8566b9a1ce1294cd98a8a3bd83a313c.png', 'Glaivier-null-Glaivier/Scrapper-null-Scrapper/Soulfist-null-Soulfist/Striker-null-Striker/Wardancer-null-Wardancer', 'Escolha sua sub-classe'],
+            'Assassin': ['Assassin', '', 'https://cdn-longterm.mee6.xyz/plugins/reaction_roles/images/212635560596996097/b31d8909eca2aff39d0294c8afb0f84d9aebe70b624ef5ab06e7be41ded8c3c6.png', 'Deathblade-null-Deathblade/Shadowhunter-null-Shadowhunter', 'Escolha sua sub-classe'],
+            'Mage': ['Mage', '', 'https://cdn-longterm.mee6.xyz/plugins/reaction_roles/images/212635560596996097/6768226af5747fe5ae5d15f415ec1fefe37932b87396253f05549b6809f0b8c8.png', 'Arcanist-null-Arcanist/Bard-null-Bard/Sorceress-null-Sorceress', 'Escolha sua sub-classe'],
+            'Gunner': ['Gunner', 'Gunner', '', 'https://cdn-longterm.mee6.xyz/plugins/reaction_roles/images/212635560596996097/281fe2951cb45fdc9f1ca237c16530eac0c3b8f6895e535fd66d6129df2c3b2d.png', 'Artillerist-null-Artillerist/Deadeye-null-Deadeye/Gunslinger-null-Gunslinger/Sharpshooter-null-Sharpshooter/Machinist-null-Machinist', 'Escolha sua sub-classe'],
+            'Argos': ['Abyss Raid - Argos', 'https://lost-ark.maxroll.gg/abyss-raids/argos-phase-1', 'https://mmos.com/wp-content/uploads/2022/03/lost-ark-abyss-raid-guardian-argos-banner.jpg', 'Phase 1-1370-ARGOS_P1/Phase 2-1385-ARGOS_P2/Phase 3-1400-ARGOS_P3', ' '],
+            'Valtan': ['Legion Raid - Valtan', 'https://lost-ark.maxroll.gg/legion-raids/valtan-phase-1', 'https://assets.maxroll.gg/wordpress/valtan_news-900x300.jpg', 'Normal Mode-1415-VALTAN_NM/Hard Mode-1445-VALTAN_HM', ' '],
+            'Vykas': ['Legion Raid - Vykas', 'https://lost-ark.maxroll.gg/legion-raids/vykas-phase-1', 'https://assets.maxroll.gg/wordpress/Vykas_News-900x300.jpg', 'Normal Mode-1430-VYKAS_NM/Hard Mode-1460-VYKAS_HM', ' '],
+            'Kakul-Saydon': ['Legion Raid - Kakul-Saydon', 'https://lost-ark.maxroll.gg/legion-raids/kakul-saydon-gate-1', 'JPGAQUI', '', ' ']}
+
+presets_eventos =  {'Vykas_Normal': ['Vykas_NM', 'Legion Raid - Vykas (NORMAL)', 'Gate 1, 2 e 3 (1430+)', 'https://assets.maxroll.gg/wordpress/Vykas_News-900x300.jpg', True, 8], 
+                    'Vykas_Hard': ['Vykas_HM', 'Legion Raid - Vykas (HARD)', 'Gate 1, 2 e 3 (1460+)', 'https://assets.maxroll.gg/wordpress/Vykas_News-900x300.jpg', True, 8],
+                    'Argos_P1': ['Argos_P1', 'Abyss Raid - Argos (P1)', 'Apenas P1 (1370)', 'https://mmos.com/wp-content/uploads/2022/03/lost-ark-abyss-raid-guardian-argos-banner.jpg', True, 8],
+                    'Argos_P2': ['Argos_P2', 'Abyss Raid - Argos (P2)', 'Apenas P1 e P2 (1385)', 'https://mmos.com/wp-content/uploads/2022/03/lost-ark-abyss-raid-guardian-argos-banner.jpg', True, 8],
+                    'Argos_P3': ['Argos_P3', 'Abyss Raid - Argos (P3)', 'Clear completo P1, P2 e P3 (1400)', 'https://mmos.com/wp-content/uploads/2022/03/lost-ark-abyss-raid-guardian-argos-banner.jpg', True, 8],
+                    'Valtan_Normal': ['Valtan_NM', 'Legion Raid - Valtan (NORMAL)', 'Gate 1 e 2 (1415+)', 'https://assets.maxroll.gg/wordpress/valtan_news-900x300.jpg', True, 8],
+                    'Valtan_Hard': ['Valtan_HM', 'Legion Raid - Valtan (HARD)', 'Gate 1 e 2 (1445+)', 'https://assets.maxroll.gg/wordpress/valtan_news-900x300.jpg', True, 8],
+                    'Kakul-Saydon_???': ['Kakul-Saydon', 'Legion Raid - Kakul-Saydon (???)', 'Gate 1, 2 e 3 (1475+)', '???', True, 4],
+                    'GVG': ['everyone', 'GvG', 'Raid Match & Siege', 'https://assets.maxroll.gg/wordpress/Resources_PvP.jpg', False, 50]}
+
+# Emojis
+morango = '<:morango:1017552083362258975>'
 
 class SeletorClasse(Modal):
     def __init__(self, custom_id):
@@ -51,6 +69,8 @@ class SeletorClasse(Modal):
         if str(interaction.user.id) == str(self.custom_id):
             try:
                 classes = self.text.value.replace(' ','').split(',')
+                if '' in classes: classes.remove('')
+                if ' ' in classes: classes.remove(' ')
             except:
                 print("Erro.")    
             else:
@@ -61,19 +81,8 @@ class SeletorClasse(Modal):
 
 @bot.event
 async def on_ready():   
-    global channels, classes, roles, admin_roles
-    cursor.execute("SELECT * FROM channels")
-    result = cursor.fetchall()
-    channels = {result[i][0]: int(result[i][1]) for i in range(0, len(result))}
-    
-    cursor.execute("SELECT class_name FROM classes")
-    classes = [name[0] for name in cursor.fetchall()]
-    
-    cursor.execute("SELECT role_name, id, admin FROM roles")
-    result = cursor.fetchall()
-    admin_roles = [name[0] for name in result if name[2] is True]
-    roles = {result[i][0]: int(result[i][1]) for i in range(0, len(result))}
     print(f"Logged in as {bot.user.name}({bot.user.id})")
+    await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
 
 @bot.event
 async def on_member_join(member):
@@ -108,64 +117,20 @@ async def on_member_join(member):
 async def ping(ctx):
     await ctx.send("Pong!")
 
-@bot.command()
-async def selectSQL(ctx, table, where=None):
-    if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
-        try:
-            sql = f"SELECT * FROM {table}"
-            if where is not None: sql = sql + f" WHERE {where}"
-            cursor.execute(sql)
-            result = cursor.fetchall()
-            await ctx.send(result)
-        except:
-            await ctx.send("Erro ao executar o comando SQL!")
-    else:
-        await ctx.send("Você não tem permissão para executar esse comando!")
-
-@bot.command()
-async def executeSQL(ctx, sql):
-    print(sql)
-    if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
-        try:
-            cursor.execute(sql)
-            connection.commit()
-            await ctx.send("Comando SQL executado com sucesso!")
-        except:
-            await ctx.send("Erro ao executar o comando SQL!")
-    else:
-        await ctx.send("Você não tem permissão para executar esse comando!")
-        
-@bot.command(
-    help="!nova_classe 'subclasse' 'classe'\nExemplo: !nova_classe 'Machinist' 'Gunner'",
-    brief="Insere nova classe no BD. (reiniciar bot após)"
-    )
-async def nova_classe(ctx, subclasse, classe):
-    if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
-        try:
-            cursor.execute(f"INSERT INTO classes(class_name, class) VALUES ('{classe}','{subclasse}')")
-            connection.commit()
-            await ctx.send("Nova classe inserida!")
-        except:
-            await ctx.send("Erro ao executar o comando SQL!")
-    else:
-        await ctx.send("Você não tem permissão para executar esse comando!")
-#     await ctx.send("pong")
-
 @bot.command(
     help="!criar_embed canal preset\n\nExemplo: !criar_embed raids Valtan",
     brief="Cria uma embed com base na tabela presets."
     )
 async def criar_embed(ctx, canal, titulo_preset):
     if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
-        cursor.execute(f"SELECT title, description, guide_url, image_url, buttons FROM presets WHERE preset_name = '{titulo_preset}'")
-        result = cursor.fetchone()
-        if result is not None and channels[canal] is not None:
-            embed=discord.Embed(title=result[0], description=result[1], url=result[2], color=0xFF5733)
-            embed.set_image(url=result[3])
+        preset = presets[titulo_preset]
+        if preset is not None and channels[canal] is not None:
+            embed=discord.Embed(title=preset[0], description=preset[1], url=preset[2], color=0xFF5733)
+            embed.set_image(url=preset[3])
             
             view = View()
             view.is_persistent()
-            for item in result[4].split('/'):
+            for item in preset[4].split('/'):
                 mode, ilevel, role_id = item.split('-')
                 if ilevel != 'null': embed.add_field(name = mode.upper(), value=ilevel, inline=True)
                 view.add_item(Button(custom_id=role_id, label=mode, style=discord.ButtonStyle.blurple))
@@ -177,81 +142,88 @@ async def criar_embed(ctx, canal, titulo_preset):
     else:
         await ctx.send("Você não tem permissão para executar esse comando!")
 
-@bot.command(
-    help="!criar_evento data_hora* preset\n*:formato dd/mm/aaaa hh:mm\n\nExemplo: !criar_evento '27/07/2022 22:00' Valtan",
-    brief="Cria um evento com base na tabela event_presets."
+@bot.hybrid_command(brief="Cria uma nova party para uma raid")
+@app_commands.describe(
+    nome_raid='Qual raid será feita (OBRIGATÓRIO)',
+    data_hora='Data e hora da raid (siga o formato do exemplo: 30/12/2000 14:00) (OBRIGATÓRIO)',
+    num_vagas_reservadas='Número de vagas reservadas (opcional)',
+    descricao='Descrição customizada (opcional)'
     )
-async def criar_evento(ctx, datahora=None, nome_preset=None, custom_description=None):
-    if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
-        cursor.execute(f"SELECT role_to_ping, title, description, image_url, multi_participation, max_pt_size FROM event_presets WHERE preset_name = '{nome_preset}'")
-        result = cursor.fetchone()
-
-        if result is not None:
-            if datahora is not None: 
-                try:
-                    dt = datetime.strptime(datahora, '%d/%m/%Y %H:%M')
-                    dt_string = dt.strftime("%A, %d de %B de %Y - %H:%M")
-                    
-                    # dias de semana
-                    dt_string = dt_string.replace("Monday", "Segunda-Feira").replace("Tuesday", "Terça-Feira").replace("Wednesdey", "Quarta-Feira").replace("Thursday", "Quinta-Feira").replace("Friday", "Sexta-Feira").replace("Saturday", "Sábado").replace("Sunday", "Domingo")
-                    # meses
-                    dt_string = dt_string.replace("January", "Janeiro").replace("February", "Fevereiro").replace("March", "Março").replace("April", "Abril").replace("May", "Maio").replace("June", "Junho").replace("July", "Julho").replace("August", "Agosto").replace("September", "Setembro").replace("October", "Outubro").replace("November", "Novembro").replace("December", "Dezembro")
-                except:
-                    await ctx.send("Data/hora inválida")
-                    return
-            else: dt_string = "Não definido"
-
-            if result[0] == 'everyone': role = ctx.guild.default_role
-            else: role = discord.utils.get(ctx.guild.roles, name=result[0])
-    
-            channel = bot.get_channel(channels['eventos'])
-            embed=discord.Embed(title=result[1], description=result[2] if custom_description is None else custom_description, color=0x0000FF)
-            embed.set_image(url=result[3])
-            embed.add_field(name="Data/Hora", value=dt_string, inline=False)
-            embed.add_field(name="\✅ Presente", value="-", inline=True)
-            embed.add_field(name="\❌ Recusado", value="-", inline=True)
-            embed.add_field(name="\❔ Sem certeza", value="-", inline=True)
-            embed.add_field(name="\📆 Marcar outro dia", value="-", inline=True)
-            embed.set_footer(text=f"Evento criado por: {ctx.author}\nHora: ")
-            embed.timestamp = datetime.now()
-    
-            multi_participation = str(result[4])
-            # max_pt_size = str(result[5])
-            view = View()
-            view.is_persistent()
-            view.add_item(Button(custom_id=f'Participar_{multi_participation}', label='✅ Participar', style=discord.ButtonStyle.green))
-            view.add_item(Button(custom_id=f'Recusar', label='❌ Recusar', style=discord.ButtonStyle.red))
-            view.add_item(Button(custom_id=f'Tentativa', label='❔ Talvez', style=discord.ButtonStyle.blurple))
-            view.add_item(Button(custom_id=f'AnotherDay', label='📆 Marcar outro dia', style=discord.ButtonStyle.gray)) #Button(custom_id=f'Split_{max_pt_size}', label='Dividir Party')
-    
-            if result[0] == 'everyone': await channel.send(content=f"{role}", embed=embed, view=view)
-            else: await channel.send(content=f"{role.mention}", embed=embed, view=view)
-        else:
-            await ctx.send("Não há nenhum preset com este nome! (Dica: cheque os presets com !presets) :slight_frown:")
-    else:
-        await ctx.send("Você não tem permissão para executar esse comando!")
-
-@bot.command()
-async def presets(ctx):
-    if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
-        sql = "SELECT preset_name FROM presets"
-        cursor.execute(sql)
-        result = [name[0] for name in cursor.fetchall()]
+@app_commands.choices(nome_raid=[
+    Choice(name='Argos (P1)', value='Argos_P1'),
+    Choice(name='Argos (P2)', value='Argos_P2'),
+    Choice(name='Argos (P3)', value='Argos_P3'),
+    Choice(name='Valtan (Normal)', value='Valtan_Normal'),
+    Choice(name='Valtan (Hard)', value='Valtan_Hard'),
+    Choice(name='Vykas (Normal)', value='Vykas_Normal'),
+    Choice(name='Vykas (Hard)', value='Vykas_Hard')
+    ])
+@app_commands.choices(num_vagas_reservadas=[
+    Choice(name=1, value=1),
+    Choice(name=2, value=2),
+    Choice(name=3, value=3),
+    Choice(name=4, value=4),
+    Choice(name=5, value=5),
+    Choice(name=6, value=6),
+    Choice(name=7, value=7)
+    ])
+async def raid(ctx, nome_raid:str, data_hora:str, num_vagas_reservadas:int=0, descricao:str=""):
+    role = discord.utils.get(ctx.guild.roles, id=roles["Guildmate"])
+    if (role in ctx.author.roles) or (set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set()) :
+        raid = presets_eventos[nome_raid]
+        if raid is None:
+            await ctx.interaction.response.send_message("Nome da raid inexistente!", ephemeral=True)
+            return
         
-        str_output = "**EMBEDS:**\n"
-        for item in result:
-            str_output = str_output + "- " + item + "\n"
+        if data_hora is not None: 
+            try:
+                dt = datetime.strptime(data_hora, '%d/%m/%Y %H:%M')
+                dt_string = dt.strftime("%A, %d de %B de %Y - %H:%M")
+    
+                # dias de semana
+                dt_string = dt_string.replace("Monday", "Segunda-Feira").replace("Tuesday", "Terça-Feira").replace("Wednesdey", "Quarta-Feira").replace("Thursday", "Quinta-Feira").replace("Friday", "Sexta-Feira").replace("Saturday", "Sábado").replace("Sunday", "Domingo")
+                # meses
+                dt_string = dt_string.replace("January", "Janeiro").replace("February", "Fevereiro").replace("March", "Março").replace("April", "Abril").replace("May", "Maio").replace("June", "Junho").replace("July", "Julho").replace("August", "Agosto").replace("September", "Setembro").replace("October", "Outubro").replace("November", "Novembro").replace("December", "Dezembro")
+            except:
+                await ctx.interaction.response.send_message("Data/hora inválida! Digite no formato: dd/MM/aaaa hh:mm", ephemeral=True)
+                return
+        else: dt_string = "Não definido"
+            
+        if raid[0] == 'everyone': role = ctx.guild.default_role
+        else: role = discord.utils.get(ctx.guild.roles, name=raid[0])
+    
+        str_reserva = ''
+        if num_vagas_reservadas > raid[5]: num_vagas_reservadas = raid[5]
+        if num_vagas_reservadas > 0:
+            aux = num_vagas_reservadas
+            while aux > 0:
+                str_reserva = str_reserva + "\n> Reservado"
+                aux -= 1
         
-        str_output = str_output + "\n**PRESETS EVENTOS:**\n";    
-        sql = "SELECT preset_name FROM event_presets"
-        cursor.execute(sql)
-        result = [name[0] for name in cursor.fetchall()]
-        for item in result:
-            str_output = str_output + "- " + item + "\n"
-                
-        await ctx.send(str_output)
+        channel = bot.get_channel(channels['eventos'])
+        embed=discord.Embed(title=raid[1], description=raid[2] if descricao is None else descricao, color=0x0000FF)
+        embed.set_image(url=raid[3])
+        embed.add_field(name="Data/Hora", value=dt_string, inline=False)
+        embed.add_field(name=f"\✅ Presente ({num_vagas_reservadas}/{raid[5]})", value="-" if num_vagas_reservadas == 0 else str_reserva, inline=True)
+        embed.add_field(name="\❌ Recusado", value="-", inline=True)
+        embed.add_field(name="\❔ Sem certeza", value="-", inline=True)
+        embed.set_footer(text=f"Evento criado por: {ctx.author}\nHora: ")
+        embed.timestamp = datetime.now()
+    
+        multi_participation = str(raid[4])
+        view = View()
+        view.is_persistent()
+        view.add_item(Button(custom_id=f'Participar_{multi_participation}', label='✅ Participar', style=discord.ButtonStyle.green))
+        view.add_item(Button(custom_id=f'Recusar', label='❌ Recusar', style=discord.ButtonStyle.red))
+        view.add_item(Button(custom_id=f'Tentativa', label='❔ Talvez', style=discord.ButtonStyle.blurple))
+    
+        if raid[0] == 'everyone': await channel.send(content=f"{role}", embed=embed, view=view)
+        else: await channel.send(content=f"{role.mention}", embed=embed, view=view)
+        
+        events = discord.utils.get(ctx.guild.channels, id = channels['eventos'])
+        await ctx.interaction.response.send_message(f"Raid criada com sucesso em {events.mention}! Boa sorte! {morango}", ephemeral=True)
     else:
-        await ctx.send("Você não tem permissão para executar esse comando!")
+        await ctx.interaction.response.send_message("Você não tem permissão para executar esse comando!", ephemeral=True)
 
 @bot.event
 async def on_interaction(interaction):   
@@ -282,50 +254,47 @@ async def on_interaction(interaction):
             await interaction.response.send_message(content = f"Agora você tem um(a) {interaction.data['custom_id']} cadastrado(a)! :hearts:\n\nSuas classes cadastradas: {set(classes).intersection(user_roles)}", ephemeral=True)
     
     elif interaction.channel_id == channels['eventos']: 
-        custom_id = interaction.data['custom_id'].split('_')[0]
+        if 'custom_id' in interaction.data.keys(): custom_id = interaction.data['custom_id'].split('_')[0]
+        else: custom_id = 'slash_Raid'
+        
         if custom_id == 'Participar':
             try: multi_participation = interaction.data['custom_id'].split('_')[1]
             except: multi_participation = "False"
     
-            if multi_participation == "True":    
-                # options = []
-                roles = set(classes).intersection([role.name for role in interaction.user.roles])
-                if roles == set():
-                    canal_classe = discord.utils.get(interaction.guild.channels, id = channels['classes'])
-                    await interaction.response.send_message(content = f"Antes de participar de um evento, vá em {canal_classe.mention} e escolha as classes que você joga!", ephemeral=True)
-                    return
-                
-                modal = SeletorClasse(str(interaction.user.id))
-                modal.text.default = ", ".join(roles)
-                # for item in roles:
-                #     class_name = item.replace("'", "")
-                #     # options.append(SelectOption(label=class_name, value=class_name))
-                #     modal.select.add_option(label=class_name, value=class_name)
-                # modal.select.max_values = len(roles)
-
-                modal.message_id = interaction.message.id
-                await interaction.response.send_modal(modal)
+            field_name = interaction.message.embeds[0].fields[1].name
+            actual_members, max_members = field_name[field_name.find("(")+1:field_name.find(")")].split('/')
+    
+            if actual_members < max_members:
+                if multi_participation == "True":    
+                    roles = set(classes).intersection([role.name for role in interaction.user.roles])
+                    if roles == set():
+                        canal_classe = discord.utils.get(interaction.guild.channels, id = channels['classes'])
+                        await interaction.response.send_message(content = f"Antes de participar de um evento, vá em {canal_classe.mention} e escolha as classes que você joga!")
+                        return
+    
+                    modal = SeletorClasse(str(interaction.user.id))
+                    modal.text.default = ", ".join(roles)
+    
+                    modal.message_id = interaction.message.id
+                    await interaction.response.send_modal(modal)
+                else:
+                    event_message = interaction.message
+                    clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.user.display_name, index=1)
+                    try:
+                        await interaction.response.edit_message(embed=clone_embed)
+                    except:
+                        print("Erro ao tentar editar mensagem do evento!")
             else:
-                event_message = interaction.message
-                clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.user.display_name, index=1)
-                try:
-                    await interaction.response.edit_message(embed=clone_embed)
-                except:
-                    print("Erro ao tentar editar mensagem do evento!")
-
-        if custom_id == "Recusar":
+                await interaction.response.send_message(content = f"Infelizmente este grupo já está completo! :slight_frown:", ephemeral=True)
+    
+        elif custom_id == "Recusar":
             event_message = interaction.message
             clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.user.display_name, index=2)
             await interaction.response.edit_message(embed=clone_embed)
-        
-        if custom_id == "Tentativa":
+    
+        elif custom_id == "Tentativa":
             event_message = interaction.message
             clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.user.display_name, index=3)
-            await interaction.response.edit_message(embed=clone_embed)
-        
-        if custom_id == "AnotherDay":
-            event_message = interaction.message
-            clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.user.display_name, index=4)
             await interaction.response.edit_message(embed=clone_embed)
         
 @bot.event
@@ -339,35 +308,26 @@ def editEmbed(embed, author_name, index, author_class=[]):
     # 3 - Tentativa
     clone_embed = embed
     
-    participation_text = clone_embed.fields[1].value
-    refusal_text = clone_embed.fields[2].value
-    tentative_text = clone_embed.fields[3].value
-    anotherday_text = clone_embed.fields[4].value
-    # _, participation_text, refusal_text, tentative_text, anotherday_text = [field.value for field in clone_embed.fields]
+    _, participation_text, refusal_text, tentative_text = [field.value for field in clone_embed.fields]
     
     participation_list = participation_text.split("\n")
     refusal_list = refusal_text.split("\n")
     tentative_list = tentative_text.split("\n")
-    anotherday_list = anotherday_text.split("\n")
     
     filtered_list = []
     filtered_str = ''
     
-    for i in range(1, 5):
+    for i in range(1, 4):
         filtered_list.clear()
         filtered_str = ''
         if i == 1:
             edit_list = participation_list
-            item_name = "\✅ Presente"
         if i == 2:
             edit_list = refusal_list
             item_name = "\❌ Recusado"
         if i == 3:
             edit_list = tentative_list
             item_name = "\❔ Sem certeza"
-        if i == 4:
-            edit_list = anotherday_list
-            item_name = "\📆 Marcar outro dia"
         
         if index is not i:             
             for member in edit_list:
@@ -383,21 +343,20 @@ def editEmbed(embed, author_name, index, author_class=[]):
                 for member in edit_list:
                     if member.find(f" {author_name}") == -1: filtered_list.append("\n"+member)
                     else: 
-                        if index == 1 and author_class != []:
-                            member_classes = member[member.find("(")+1:member.find(")")].replace(' ','').split(',')
-                            filtered_list.append(f"\n> {author_name} ({', '.join(list(set(member_classes)|set(author_class)))})")   
+                        if index == 1:
+                            member_classes = member[member.find("(")+1:member.find(")")].split(',')
+                            filtered_list.append(f"\n> {author_name} ({','.join(list(set(member_classes)|set(author_class)))})")     
                 filtered_str = ''.join(filtered_list)
                 if filtered_str == "": filtered_str = "-"
             else: # se não, adiciona
                 filtered_str = '\n'.join(edit_list)
                 if filtered_str == '-': filtered_str = ''
-            
-                if len(filtered_str + f"\n> {author_string}") > 1023:
-                    embed.add_field(name="Mais participantes!", value=filtered_str, inline=True)
-                    filtered_str = f"\n> {author_string}"
-                else: 
-                    filtered_str = filtered_str + f"\n> {author_string}"
+                filtered_str = filtered_str + f"\n> {author_string}"
         
+        if i == 1:
+            member_count = filtered_str.count('> ')
+            max_member_count = embed.fields[1].name.split('/')[-1].replace(')', '')
+            item_name = f"\✅ Presente ({member_count}/{max_member_count})"
         clone_embed.set_field_at(i, name=item_name, value=filtered_str, inline=True)
     return clone_embed
 
@@ -415,4 +374,5 @@ def giveRole(interaction):
     return has_role, role
 
 if __name__ == "__main__":
+    bot.tree.copy_global_to(guild=discord.Object(id=GUILD_ID))
     bot.run(DISCORD_TOKEN)
