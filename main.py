@@ -156,7 +156,8 @@ async def criar_embed(ctx, canal, titulo_preset):
     Choice(name='Valtan (Normal)', value='Valtan_Normal'),
     Choice(name='Valtan (Hard)', value='Valtan_Hard'),
     Choice(name='Vykas (Normal)', value='Vykas_Normal'),
-    Choice(name='Vykas (Hard)', value='Vykas_Hard')
+    Choice(name='Vykas (Hard)', value='Vykas_Hard'),
+    Choice(name='GVG', value='GVG')
     ])
 @app_commands.choices(num_vagas_reservadas=[
     Choice(name=1, value=1),
@@ -189,8 +190,7 @@ async def raid(ctx, nome_raid:str, data_hora:str, num_vagas_reservadas:int=0, de
                 return
         else: dt_string = "Não definido"
             
-        if raid[0] == 'everyone': role = ctx.guild.default_role
-        else: role = discord.utils.get(ctx.guild.roles, name=raid[0])
+        role = discord.utils.get(ctx.guild.roles, name=raid[0])
     
         str_reserva = ''
         if num_vagas_reservadas > raid[5]: num_vagas_reservadas = raid[5]
@@ -217,13 +217,58 @@ async def raid(ctx, nome_raid:str, data_hora:str, num_vagas_reservadas:int=0, de
         view.add_item(Button(custom_id=f'Recusar', label='❌ Recusar', style=discord.ButtonStyle.red))
         view.add_item(Button(custom_id=f'Tentativa', label='❔ Talvez', style=discord.ButtonStyle.blurple))
     
-        if raid[0] == 'everyone': await channel.send(content=f"{role}", embed=embed, view=view)
-        else: await channel.send(content=f"{role.mention}", embed=embed, view=view)
+        await channel.send(content=f"{role.mention}", embed=embed, view=view)
         
         events = discord.utils.get(ctx.guild.channels, id = channels['eventos'])
         await ctx.interaction.response.send_message(f"Raid criada com sucesso em {events.mention}! Boa sorte! {morango}", ephemeral=True)
     else:
         await ctx.interaction.response.send_message("Você não tem permissão para executar esse comando!", ephemeral=True)
+
+@bot.hybrid_command(brief="Cria uma novo evento para o GVG")
+@app_commands.describe(
+    data_hora='Data e hora da GVG (siga o formato do exemplo: 30/12/2000 14:00) (OBRIGATÓRIO)',
+    descricao='Descrição customizada (opcional)'
+    )
+async def gvg(ctx, data_hora:str, descricao:str=""):
+    if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
+        if data_hora is not None: 
+            try:
+                dt = datetime.strptime(data_hora, '%d/%m/%Y %H:%M')
+                dt_string = dt.strftime("%A, %d de %B de %Y - %H:%M")
+    
+                # dias de semana
+                dt_string = dt_string.replace("Monday", "Segunda-Feira").replace("Tuesday", "Terça-Feira").replace("Wednesdey", "Quarta-Feira").replace("Thursday", "Quinta-Feira").replace("Friday", "Sexta-Feira").replace("Saturday", "Sábado").replace("Sunday", "Domingo")
+                # meses
+                dt_string = dt_string.replace("January", "Janeiro").replace("February", "Fevereiro").replace("March", "Março").replace("April", "Abril").replace("May", "Maio").replace("June", "Junho").replace("July", "Julho").replace("August", "Agosto").replace("September", "Setembro").replace("October", "Outubro").replace("November", "Novembro").replace("December", "Dezembro")
+            except:
+                await ctx.interaction.response.send_message("Data/hora inválida! Digite no formato: dd/MM/aaaa hh:mm", ephemeral=True)
+                return
+            
+        gvg_preset = presets_eventos['GVG']
+        role = ctx.guild.default_role
+        
+        channel = bot.get_channel(channels['eventos'])
+        embed=discord.Embed(title=gvg_preset[1], description=gvg_preset[2] if descricao is None else descricao, color=0x0000FF)
+        embed.set_image(url=gvg_preset[3])
+        embed.add_field(name="Data/Hora", value=dt_string, inline=False)
+        embed.add_field(name=f"\✅ Presente (0/{gvg_preset[5]})", value="-", inline=True)
+        embed.add_field(name="\❌ Recusado", value="-", inline=True)
+        embed.add_field(name="\❔ Sem certeza", value="-", inline=True)
+        embed.set_footer(text=f"Evento criado por: {ctx.author}\nHora: ")
+        embed.timestamp = datetime.now()
+    
+        multi_participation = str(gvg_preset[4])
+        view = View()
+        view.is_persistent()
+        view.add_item(Button(custom_id=f'Participar_{multi_participation}', label='✅ Participar', style=discord.ButtonStyle.green))
+        view.add_item(Button(custom_id=f'Recusar', label='❌ Recusar', style=discord.ButtonStyle.red))
+        view.add_item(Button(custom_id=f'Tentativa', label='❔ Talvez', style=discord.ButtonStyle.blurple))        
+        await channel.send(content=f"{role}", embed=embed, view=view)
+        
+        events = discord.utils.get(ctx.guild.channels, id = channels['eventos'])
+        await ctx.interaction.response.send_message(f"Evento de GVG criado com sucesso em {events.mention}! Boa sorte a todos! {morango}", ephemeral=True)
+    else:
+        await ctx.send("Você não tem permissão para executar esse comando!")
 
 @bot.event
 async def on_interaction(interaction):   
