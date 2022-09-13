@@ -156,8 +156,7 @@ async def criar_embed(ctx, canal, titulo_preset):
     Choice(name='Valtan (Normal)', value='Valtan_Normal'),
     Choice(name='Valtan (Hard)', value='Valtan_Hard'),
     Choice(name='Vykas (Normal)', value='Vykas_Normal'),
-    Choice(name='Vykas (Hard)', value='Vykas_Hard'),
-    Choice(name='GVG', value='GVG')
+    Choice(name='Vykas (Hard)', value='Vykas_Hard')
     ])
 @app_commands.choices(num_vagas_reservadas=[
     Choice(name=1, value=1),
@@ -308,8 +307,8 @@ async def on_interaction(interaction):
     
             field_name = interaction.message.embeds[0].fields[1].name
             actual_members, max_members = field_name[field_name.find("(")+1:field_name.find(")")].split('/')
-    
-            if actual_members < max_members:
+            
+            if int(actual_members) < int(max_members):
                 if multi_participation == "True":    
                     roles = set(classes).intersection([role.name for role in interaction.user.roles])
                     if roles == set():
@@ -388,7 +387,7 @@ def editEmbed(embed, author_name, index, author_class=[]):
                 for member in edit_list:
                     if member.find(f" {author_name}") == -1: filtered_list.append("\n"+member)
                     else: 
-                        if index == 1:
+                        if index == 1 and author_class != []:
                             member_classes = member[member.find("(")+1:member.find(")")].split(',')
                             filtered_list.append(f"\n> {author_name} ({','.join(list(set(member_classes)|set(author_class)))})")     
                 filtered_str = ''.join(filtered_list)
