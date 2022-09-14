@@ -36,18 +36,22 @@ presets =  {'Warrior': ['Warrior', '', 'https://cdn-longterm.mee6.xyz/plugins/re
             'Mage': ['Mage', '', 'https://cdn-longterm.mee6.xyz/plugins/reaction_roles/images/212635560596996097/6768226af5747fe5ae5d15f415ec1fefe37932b87396253f05549b6809f0b8c8.png', 'Arcanist-null-Arcanist/Bard-null-Bard/Sorceress-null-Sorceress', 'Escolha sua sub-classe'],
             'Gunner': ['Gunner', 'Gunner', '', 'https://cdn-longterm.mee6.xyz/plugins/reaction_roles/images/212635560596996097/281fe2951cb45fdc9f1ca237c16530eac0c3b8f6895e535fd66d6129df2c3b2d.png', 'Artillerist-null-Artillerist/Deadeye-null-Deadeye/Gunslinger-null-Gunslinger/Sharpshooter-null-Sharpshooter/Machinist-null-Machinist', 'Escolha sua sub-classe'],
             'Argos': ['Abyss Raid - Argos', 'https://lost-ark.maxroll.gg/abyss-raids/argos-phase-1', 'https://mmos.com/wp-content/uploads/2022/03/lost-ark-abyss-raid-guardian-argos-banner.jpg', 'Phase 1-1370-ARGOS_P1/Phase 2-1385-ARGOS_P2/Phase 3-1400-ARGOS_P3', ' '],
-            'Valtan': ['Legion Raid - Valtan', 'https://lost-ark.maxroll.gg/legion-raids/valtan-phase-1', 'https://assets.maxroll.gg/wordpress/valtan_news-900x300.jpg', 'Normal Mode-1415-VALTAN_NM/Hard Mode-1445-VALTAN_HM', ' '],
-            'Vykas': ['Legion Raid - Vykas', 'https://lost-ark.maxroll.gg/legion-raids/vykas-phase-1', 'https://assets.maxroll.gg/wordpress/Vykas_News-900x300.jpg', 'Normal Mode-1430-VYKAS_NM/Hard Mode-1460-VYKAS_HM', ' '],
-            'Kakul-Saydon': ['Legion Raid - Kakul-Saydon', 'https://lost-ark.maxroll.gg/legion-raids/kakul-saydon-gate-1', 'JPGAQUI', '', ' ']}
+            'Valtan': ['Legion Raid - Valtan', 'https://lost-ark.maxroll.gg/legion-raids/valtan-phase-1', 'https://i.postimg.cc/1XpYdN7f/valtan-hard.jpg', 'Normal Mode-1415-VALTAN_NM/Hard Mode-1445-VALTAN_HM/Inferno Mode-1445-VALTAN_HELL', ' '],
+            'Vykas': ['Legion Raid - Vykas', 'https://lost-ark.maxroll.gg/legion-raids/vykas-phase-1', 'https://i.postimg.cc/W4GjMhTb/vykas-hard.jpg', 'Normal Mode-1430-VYKAS_NM/Hard Mode-1460-VYKAS_HM', ' '],
+            'Kakul-Saydon': ['Legion Raid - Kakul-Saydon', 'https://lost-ark.maxroll.gg/legion-raids/kakul-saydon-gate-1', 'https://i.postimg.cc/V6XRsPqh/kakulsaydon-hard.jpg', 'Normal Mode (Rehearsal)-1385-KAKULSAYDON_NM/Hard Mode-1475-KAKULSAYDON_HM', ' ']}
 
-presets_eventos =  {'Vykas_Normal': ['Vykas_NM', 'Legion Raid - Vykas (NORMAL)', 'Gate 1, 2 e 3 (1430+)', 'https://assets.maxroll.gg/wordpress/Vykas_News-900x300.jpg', True, 8], 
-                    'Vykas_Hard': ['Vykas_HM', 'Legion Raid - Vykas (HARD)', 'Gate 1, 2 e 3 (1460+)', 'https://assets.maxroll.gg/wordpress/Vykas_News-900x300.jpg', True, 8],
-                    'Argos_P1': ['Argos_P1', 'Abyss Raid - Argos (P1)', 'Apenas P1 (1370)', 'https://mmos.com/wp-content/uploads/2022/03/lost-ark-abyss-raid-guardian-argos-banner.jpg', True, 8],
-                    'Argos_P2': ['Argos_P2', 'Abyss Raid - Argos (P2)', 'Apenas P1 e P2 (1385)', 'https://mmos.com/wp-content/uploads/2022/03/lost-ark-abyss-raid-guardian-argos-banner.jpg', True, 8],
-                    'Argos_P3': ['Argos_P3', 'Abyss Raid - Argos (P3)', 'Clear completo P1, P2 e P3 (1400)', 'https://mmos.com/wp-content/uploads/2022/03/lost-ark-abyss-raid-guardian-argos-banner.jpg', True, 8],
-                    'Valtan_Normal': ['Valtan_NM', 'Legion Raid - Valtan (NORMAL)', 'Gate 1 e 2 (1415+)', 'https://assets.maxroll.gg/wordpress/valtan_news-900x300.jpg', True, 8],
-                    'Valtan_Hard': ['Valtan_HM', 'Legion Raid - Valtan (HARD)', 'Gate 1 e 2 (1445+)', 'https://assets.maxroll.gg/wordpress/valtan_news-900x300.jpg', True, 8],
-                    'Kakul-Saydon_???': ['Kakul-Saydon', 'Legion Raid - Kakul-Saydon (???)', 'Gate 1, 2 e 3 (1475+)', '???', True, 4],
+presets_eventos =  {'Vykas_Normal': ['Vykas_NM', 'Legion Raid - Vykas (NORMAL)', 'Gate 1, 2 e 3 (1430+)', 'https://i.postimg.cc/LXS97jN1/vykas-normal.jpg', True, 8], 
+                    'Vykas_Hard': ['Vykas_HM', 'Legion Raid - Vykas (HARD)', 'Gate 1, 2 e 3 (1460+)', 'https://i.postimg.cc/W4GjMhTb/vykas-hard.jpg', True, 8],
+                    'Vykas_Inferno': ['Vykas_HELL', 'Legion Raid - Vykas (INFERNO)', 'Gate 1, 2 e 3 (1460)', 'https://i.postimg.cc/Bbr4TDLb/vykas-inferno.jpg', True, 8],
+                    'Argos_P1': ['Argos_P1', 'Abyss Raid - Argos (P1)', 'Apenas P1 (1370)', 'https://i.postimg.cc/6pWTxJhM/argos-p1.jpg', True, 8],
+                    'Argos_P2': ['Argos_P2', 'Abyss Raid - Argos (P2)', 'Apenas P1 e P2 (1385)', 'https://i.postimg.cc/d1yVjqqV/argos-p2.jpg', True, 8],
+                    'Argos_P3': ['Argos_P3', 'Abyss Raid - Argos (P3)', 'Clear completo P1, P2 e P3 (1400)', 'https://i.postimg.cc/sDyg5db3/argos-p3.jpg', True, 8],
+                    'Valtan_Normal': ['Valtan_NM', 'Legion Raid - Valtan (NORMAL)', 'Gate 1 e 2 (1415+)', 'https://i.postimg.cc/3RkstNHv/valtan-normal.jpg', True, 8],
+                    'Valtan_Hard': ['Valtan_HM', 'Legion Raid - Valtan (HARD)', 'Gate 1 e 2 (1445+)', 'https://i.postimg.cc/1XpYdN7f/valtan-hard.jpg', True, 8],
+                    'Valtan_Inferno': ['Valtan_HELL', 'Legion Raid - Valtan (INFERNO)', 'Gate 1 e 2 (1445)', 'https://i.postimg.cc/B6hvKXBP/valtan-inferno.jpg', True, 8],
+                    'Kakul-Saydon_Normal': ['KakulSaydon_NM', 'Legion Raid - Kakul-Saydon (NORMAL)', 'Gate 1, 2 e 3 (1385+)', 'https://i.postimg.cc/ZKXCHvtr/kakulsaydon-normal.jpg', True, 4],
+                    'Kakul-Saydon_Hard': ['KakulSaydon_HM', 'Legion Raid - Kakul-Saydon (HARD)', 'Gate 1, 2 e 3 (1475+)', 'https://i.postimg.cc/V6XRsPqh/kakulsaydon-hard.jpg', True, 4],
+                    'Kakul-Saydon_Inferno': ['KakulSaydon_HELL', 'Legion Raid - Kakul-Saydon (INFERNO)', 'Gate 1, 2 e 3 (1475)', 'https://i.postimg.cc/rsmN1R6B/kakulsaydon-inferno.jpg', True, 4],
                     'GVG': ['everyone', 'GvG', 'Raid Match & Siege', 'https://assets.maxroll.gg/wordpress/Resources_PvP.jpg', False, 50]}
 
 # Emojis
@@ -123,14 +127,14 @@ async def ping(ctx):
     )
 async def criar_embed(ctx, canal, titulo_preset):
     if set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set():
-        preset = presets[titulo_preset]
-        if preset is not None and channels[canal] is not None:
-            embed=discord.Embed(title=preset[0], description=preset[1], url=preset[2], color=0xFF5733)
-            embed.set_image(url=preset[3])
+        result = presets[titulo_preset]
+        if result is not None and channels[canal] is not None:
+            embed=discord.Embed(title=result[0], description=result[4], url=result[1], color=0xFF5733)
+            embed.set_image(url=result[2])
             
             view = View()
             view.is_persistent()
-            for item in preset[4].split('/'):
+            for item in result[3].split('/'):
                 mode, ilevel, role_id = item.split('-')
                 if ilevel != 'null': embed.add_field(name = mode.upper(), value=ilevel, inline=True)
                 view.add_item(Button(custom_id=role_id, label=mode, style=discord.ButtonStyle.blurple))
@@ -149,16 +153,20 @@ async def criar_embed(ctx, canal, titulo_preset):
     num_vagas_reservadas='Número de vagas reservadas (opcional)',
     descricao='Descrição customizada (opcional)'
     )
-@app_commands.choices(nome_raid=[
+@app_commands.choices(nome_raid= [
     Choice(name='Argos (P1)', value='Argos_P1'),
     Choice(name='Argos (P2)', value='Argos_P2'),
     Choice(name='Argos (P3)', value='Argos_P3'),
     Choice(name='Valtan (Normal)', value='Valtan_Normal'),
     Choice(name='Valtan (Hard)', value='Valtan_Hard'),
+    Choice(name='Valtan (Inferno)', value='Valtan_Inferno'),
     Choice(name='Vykas (Normal)', value='Vykas_Normal'),
-    Choice(name='Vykas (Hard)', value='Vykas_Hard')
+    Choice(name='Vykas (Hard)', value='Vykas_Hard'),
+    Choice(name='Kakul-Saydon (Rehearsal)', value='Kakul-Saydon_Normal'),
+    Choice(name='Kakul-Saydon (Hard)', value='Kakul-Saydon_Hard')
     ])
 @app_commands.choices(num_vagas_reservadas=[
+    Choice(name=0, value=0),
     Choice(name=1, value=1),
     Choice(name=2, value=2),
     Choice(name=3, value=3),
@@ -170,25 +178,26 @@ async def criar_embed(ctx, canal, titulo_preset):
 async def raid(ctx, nome_raid:str, data_hora:str, num_vagas_reservadas:int=0, descricao:str=""):
     role = discord.utils.get(ctx.guild.roles, id=roles["Guildmate"])
     if (role in ctx.author.roles) or (set([role.name for role in ctx.author.roles]).intersection(admin_roles) != set()) :
-        raid = presets_eventos[nome_raid]
-        if raid is None:
+        
+        if nome_raid in presets_eventos.keys(): raid = presets_eventos[nome_raid]
+        else:
             await ctx.interaction.response.send_message("Nome da raid inexistente!", ephemeral=True)
             return
         
-        if data_hora is not None: 
+        if data_hora == "undefined": dt_string = "Não definido"
+        else:
             try:
                 dt = datetime.strptime(data_hora, '%d/%m/%Y %H:%M')
                 dt_string = dt.strftime("%A, %d de %B de %Y - %H:%M")
     
                 # dias de semana
-                dt_string = dt_string.replace("Monday", "Segunda-Feira").replace("Tuesday", "Terça-Feira").replace("Wednesdey", "Quarta-Feira").replace("Thursday", "Quinta-Feira").replace("Friday", "Sexta-Feira").replace("Saturday", "Sábado").replace("Sunday", "Domingo")
+                dt_string = dt_string.replace("Monday", "Segunda-Feira").replace("Tuesday", "Terça-Feira").replace("Wednesday", "Quarta-Feira").replace("Thursday", "Quinta-Feira").replace("Friday", "Sexta-Feira").replace("Saturday", "Sábado").replace("Sunday", "Domingo")
                 # meses
                 dt_string = dt_string.replace("January", "Janeiro").replace("February", "Fevereiro").replace("March", "Março").replace("April", "Abril").replace("May", "Maio").replace("June", "Junho").replace("July", "Julho").replace("August", "Agosto").replace("September", "Setembro").replace("October", "Outubro").replace("November", "Novembro").replace("December", "Dezembro")
             except:
                 await ctx.interaction.response.send_message("Data/hora inválida! Digite no formato: dd/MM/aaaa hh:mm", ephemeral=True)
                 return
-        else: dt_string = "Não definido"
-            
+   
         role = discord.utils.get(ctx.guild.roles, name=raid[0])
     
         str_reserva = ''
@@ -206,7 +215,7 @@ async def raid(ctx, nome_raid:str, data_hora:str, num_vagas_reservadas:int=0, de
         embed.add_field(name=f"\✅ Presente ({num_vagas_reservadas}/{raid[5]})", value="-" if num_vagas_reservadas == 0 else str_reserva, inline=True)
         embed.add_field(name="\❌ Recusado", value="-", inline=True)
         embed.add_field(name="\❔ Sem certeza", value="-", inline=True)
-        embed.set_footer(text=f"Evento criado por: {ctx.author}\nHora: ")
+        embed.set_footer(text=f"Evento criado por: {ctx.author.display_name}\nHora: ")
         embed.timestamp = datetime.now()
     
         multi_participation = str(raid[4])
@@ -215,6 +224,7 @@ async def raid(ctx, nome_raid:str, data_hora:str, num_vagas_reservadas:int=0, de
         view.add_item(Button(custom_id=f'Participar_{multi_participation}', label='✅ Participar', style=discord.ButtonStyle.green))
         view.add_item(Button(custom_id=f'Recusar', label='❌ Recusar', style=discord.ButtonStyle.red))
         view.add_item(Button(custom_id=f'Tentativa', label='❔ Talvez', style=discord.ButtonStyle.blurple))
+        view.add_item(Button(custom_id=f'Deletar', label='Deletar evento', style=discord.ButtonStyle.grey))
     
         await channel.send(content=f"{role.mention}", embed=embed, view=view)
         
@@ -222,7 +232,7 @@ async def raid(ctx, nome_raid:str, data_hora:str, num_vagas_reservadas:int=0, de
         await ctx.interaction.response.send_message(f"Raid criada com sucesso em {events.mention}! Boa sorte! {morango}", ephemeral=True)
     else:
         await ctx.interaction.response.send_message("Você não tem permissão para executar esse comando!", ephemeral=True)
-
+        
 @bot.hybrid_command(brief="Cria uma novo evento para o GVG")
 @app_commands.describe(
     data_hora='Data e hora da GVG (siga o formato do exemplo: 30/12/2000 14:00) (OBRIGATÓRIO)',
@@ -236,7 +246,7 @@ async def gvg(ctx, data_hora:str, descricao:str=""):
                 dt_string = dt.strftime("%A, %d de %B de %Y - %H:%M")
     
                 # dias de semana
-                dt_string = dt_string.replace("Monday", "Segunda-Feira").replace("Tuesday", "Terça-Feira").replace("Wednesdey", "Quarta-Feira").replace("Thursday", "Quinta-Feira").replace("Friday", "Sexta-Feira").replace("Saturday", "Sábado").replace("Sunday", "Domingo")
+                dt_string = dt_string.replace("Monday", "Segunda-Feira").replace("Tuesday", "Terça-Feira").replace("Wednesday", "Quarta-Feira").replace("Thursday", "Quinta-Feira").replace("Friday", "Sexta-Feira").replace("Saturday", "Sábado").replace("Sunday", "Domingo")
                 # meses
                 dt_string = dt_string.replace("January", "Janeiro").replace("February", "Fevereiro").replace("March", "Março").replace("April", "Abril").replace("May", "Maio").replace("June", "Junho").replace("July", "Julho").replace("August", "Agosto").replace("September", "Setembro").replace("October", "Outubro").replace("November", "Novembro").replace("December", "Dezembro")
             except:
@@ -262,6 +272,7 @@ async def gvg(ctx, data_hora:str, descricao:str=""):
         view.add_item(Button(custom_id=f'Participar_{multi_participation}', label='✅ Participar', style=discord.ButtonStyle.green))
         view.add_item(Button(custom_id=f'Recusar', label='❌ Recusar', style=discord.ButtonStyle.red))
         view.add_item(Button(custom_id=f'Tentativa', label='❔ Talvez', style=discord.ButtonStyle.blurple))        
+        view.add_item(Button(custom_id=f'Deletar', label='Deletar evento', style=discord.ButtonStyle.grey))
         await channel.send(content=f"{role}", embed=embed, view=view)
         
         events = discord.utils.get(ctx.guild.channels, id = channels['eventos'])
@@ -340,6 +351,13 @@ async def on_interaction(interaction):
             event_message = interaction.message
             clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.user.display_name, index=3)
             await interaction.response.edit_message(embed=clone_embed)
+        
+        elif custom_id == "Deletar":
+            event_message = interaction.message
+            event_author=event_message.embeds[0].footer.text.split('\n')[0].replace('Evento criado por: ','')
+            if (interaction.user.display_name == event_author) or (set([role.name for role in interaction.user.roles]).intersection(admin_roles)): 
+                await interaction.message.delete()
+            else: interaction.response.send_message(content = f"Você não foi o criador do evento e/ou não é um admin!")
         
 @bot.event
 async def edit_message_embed(msg, new_embed):
