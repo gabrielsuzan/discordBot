@@ -188,7 +188,7 @@ async def raid(ctx, nome_raid:str, data_hora:str, num_vagas_reservadas:int=0, de
             await ctx.interaction.response.send_message("Nome da raid inexistente!", ephemeral=True)
             return
         
-        if data_hora == "": dt_string = "Não definido"
+        if data_hora == "0": dt_string = "Não definido"
         else:
             try:
                 dt = datetime.strptime(data_hora, '%d/%m/%Y %H:%M')
