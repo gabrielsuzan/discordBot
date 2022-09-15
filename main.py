@@ -64,6 +64,7 @@ class SeletorClasse(Modal):
         self.message_id = None
         self.text = TextInput(label="Digite com quais classes você participará:", required=True, min_length=1)
         self.add_item(self.text)
+        self.index_to_add = 1
         
     def check(self, msg):
         if msg.author.id == self.custom_id: return True
@@ -79,9 +80,12 @@ class SeletorClasse(Modal):
                 print("Erro.")    
             else:
                 msg = await interaction.channel.fetch_message(self.message_id)
-                clone_embed = editEmbed(embed=msg.embeds[0], author_name=interaction.user.display_name, author_class=classes, index=1)
+                clone_embed = editEmbed(embed=msg.embeds[0], author_name=interaction.user.display_name, author_class=classes, index=self.index_to_add)
                 await edit_message_embed(msg, clone_embed)
-                await interaction.response.send_message("Boa sorte! :hearts:", ephemeral=True)
+                
+                if self.index_to_add == 1: message = f"Boa sorte! {morango}"
+                elif self.index_to_add == 4: message = f"O time está cheio, portanto você foi adicionado aos reservas. Boa sorte! {morango}"
+                await interaction.response.send_message(message, ephemeral=True)
 
 @bot.event
 async def on_ready():   
@@ -148,8 +152,8 @@ async def criar_embed(ctx, canal, titulo_preset):
 
 @bot.hybrid_command(brief="Cria uma nova party para uma raid")
 @app_commands.describe(
-    nome_raid='Qual raid será feita (OBRIGATÓRIO)',
-    data_hora='Data e hora da raid (siga o formato do exemplo: 30/12/2000 14:00) (OBRIGATÓRIO)',
+    nome_raid='Qual raid será feita, selecione uma das opções na lista',
+    data_hora='Data e hora da raid (siga o formato do exemplo: 30/12/2000 14:00) (se não tiver um horário definido digite 0)',
     num_vagas_reservadas='Número de vagas reservadas (opcional)',
     descricao='Descrição customizada (opcional)'
     )
@@ -184,7 +188,7 @@ async def raid(ctx, nome_raid:str, data_hora:str, num_vagas_reservadas:int=0, de
             await ctx.interaction.response.send_message("Nome da raid inexistente!", ephemeral=True)
             return
         
-        if data_hora == "undefined": dt_string = "Não definido"
+        if data_hora == "": dt_string = "Não definido"
         else:
             try:
                 dt = datetime.strptime(data_hora, '%d/%m/%Y %H:%M')
@@ -215,6 +219,7 @@ async def raid(ctx, nome_raid:str, data_hora:str, num_vagas_reservadas:int=0, de
         embed.add_field(name=f"\✅ Presente ({num_vagas_reservadas}/{raid[5]})", value="-" if num_vagas_reservadas == 0 else str_reserva, inline=True)
         embed.add_field(name="\❌ Recusado", value="-", inline=True)
         embed.add_field(name="\❔ Sem certeza", value="-", inline=True)
+        embed.add_field(name="\🪑 Reserva", value="-", inline=True)
         embed.set_footer(text=f"Evento criado por: {ctx.author.display_name}\nHora: ")
         embed.timestamp = datetime.now()
     
@@ -263,6 +268,7 @@ async def gvg(ctx, data_hora:str, descricao:str=""):
         embed.add_field(name=f"\✅ Presente (0/{gvg_preset[5]})", value="-", inline=True)
         embed.add_field(name="\❌ Recusado", value="-", inline=True)
         embed.add_field(name="\❔ Sem certeza", value="-", inline=True)
+        embed.add_field(name="\🪑 Reserva", value="-", inline=True)
         embed.set_footer(text=f"Evento criado por: {ctx.author}\nHora: ")
         embed.timestamp = datetime.now()
     
@@ -319,29 +325,28 @@ async def on_interaction(interaction):
             field_name = interaction.message.embeds[0].fields[1].name
             actual_members, max_members = field_name[field_name.find("(")+1:field_name.find(")")].split('/')
             
-            if int(actual_members) < int(max_members):
-                if multi_participation == "True":    
-                    roles = set(classes).intersection([role.name for role in interaction.user.roles])
-                    if roles == set():
-                        canal_classe = discord.utils.get(interaction.guild.channels, id = channels['classes'])
-                        await interaction.response.send_message(content = f"Antes de participar de um evento, vá em {canal_classe.mention} e escolha as classes que você joga!", ephemeral=True)
-                        return
-    
-                    modal = SeletorClasse(str(interaction.user.id))
-                    modal.text.default = ", ".join(roles)
-    
-                    modal.message_id = interaction.message.id
-                    await interaction.response.send_modal(modal)
-                else:
-                    event_message = interaction.message
-                    clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.user.display_name, index=1)
-                    try:
-                        await interaction.response.edit_message(embed=clone_embed)
-                    except:
-                        print("Erro ao tentar editar mensagem do evento!")
+            if multi_participation == "True":    
+                roles = set(classes).intersection([role.name for role in interaction.user.roles])
+                if roles == set():
+                    canal_classe = discord.utils.get(interaction.guild.channels, id = channels['classes'])
+                    await interaction.response.send_message(content = f"Antes de participar de um evento, vá em {canal_classe.mention} e escolha as classes que você joga!", ephemeral=True)
+                    return
+
+                modal = SeletorClasse(str(interaction.user.id))
+                modal.text.default = ", ".join(roles)
+
+                modal.message_id = interaction.message.id
+                if int(actual_members) >= int(max_members): modal.index_to_add = 4
+                    
+                await interaction.response.send_modal(modal)
             else:
-                await interaction.response.send_message(content = f"Infelizmente este grupo já está completo! :slight_frown:", ephemeral=True)
-    
+                event_message = interaction.message
+                clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.user.display_name, index=1)
+                try:
+                    await interaction.response.edit_message(embed=clone_embed)
+                except:
+                    print("Erro ao tentar editar mensagem do evento!")
+                    
         elif custom_id == "Recusar":
             event_message = interaction.message
             clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.user.display_name, index=2)
@@ -357,7 +362,7 @@ async def on_interaction(interaction):
             event_author=event_message.embeds[0].footer.text.split('\n')[0].replace('Evento criado por: ','')
             if (interaction.user.display_name == event_author) or (set([role.name for role in interaction.user.roles]).intersection(admin_roles)): 
                 await interaction.message.delete()
-            else: interaction.response.send_message(content = f"Você não foi o criador do evento e/ou não é um admin!")
+            else: interaction.response.send_message(content = f"Você não foi o criador do evento e/ou não é um admin!", ephemeral=True)
         
 @bot.event
 async def edit_message_embed(msg, new_embed):
@@ -368,18 +373,20 @@ def editEmbed(embed, author_name, index, author_class=[]):
     # 1 - Participar
     # 2 - Recusar
     # 3 - Tentativa
+    # 4 - Reserva
     clone_embed = embed
     
-    _, participation_text, refusal_text, tentative_text = [field.value for field in clone_embed.fields]
+    _, participation_text, refusal_text, tentative_text, reserve_text = [field.value for field in clone_embed.fields]
     
     participation_list = participation_text.split("\n")
     refusal_list = refusal_text.split("\n")
     tentative_list = tentative_text.split("\n")
+    reserve_list = reserve_text.split("\n")
     
     filtered_list = []
     filtered_str = ''
     
-    for i in range(1, 4):
+    for i in range(1, 5):
         filtered_list.clear()
         filtered_str = ''
         if i == 1:
@@ -390,6 +397,9 @@ def editEmbed(embed, author_name, index, author_class=[]):
         if i == 3:
             edit_list = tentative_list
             item_name = "\❔ Sem certeza"
+        if i == 4:
+            edit_list = reserve_list
+            item_name = "\🪑 Reserva"
         
         if index is not i:             
             for member in edit_list:
@@ -405,7 +415,7 @@ def editEmbed(embed, author_name, index, author_class=[]):
                 for member in edit_list:
                     if member.find(f" {author_name}") == -1: filtered_list.append("\n"+member)
                     else: 
-                        if index == 1 and author_class != []:
+                        if index in (1, 4):
                             member_classes = member[member.find("(")+1:member.find(")")].split(',')
                             filtered_list.append(f"\n> {author_name} ({','.join(list(set(member_classes)|set(author_class)))})")     
                 filtered_str = ''.join(filtered_list)
