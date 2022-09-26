@@ -3,12 +3,12 @@ import asyncio
 from datetime import datetime
 from typing import List
 
+from discord import TextStyle
 from discord import app_commands
 import discord
 from discord.app_commands import Choice
 from discord.ext import commands
 from discord.ui import Button, View, Modal, TextInput
-
 
 # Inicializando listas e dicts
 channels = {'visitante': 994209459071094794, 'regras': 994675420379234466, 'identifique-se': 994675472296333382, 'classes': 996758382226710588, 'raids': 994279626622902403, 'eventos': 994279246962888834}
@@ -81,6 +81,53 @@ class SeletorClasse(Modal):
                 if self.index_to_add == 1: message = f"Boa sorte! {morango}"
                 elif self.index_to_add == 4: message = f"O time está cheio, portanto você foi adicionado aos reservas. Boa sorte! {morango}"
                 await interaction.response.send_message(message, ephemeral=True)
+
+class EditorEvento(Modal):
+    def __init__(self, custom_id):
+        super().__init__(title='Edição do evento:')
+        self.custom_id = custom_id
+        self.message_id = None
+        self.text = TextInput(label="Descrição do evento:", required=False)
+        self.add_item(self.text)
+        self.participants = TextInput(label="Participantes:", style=TextStyle(2), required=False)
+        self.add_item(self.participants)
+        self.reserves = TextInput(label="Reservas:", style=TextStyle(2), required=False)
+        self.add_item(self.reserves)
+        
+    def check(self, msg):
+        if msg.author.id == self.custom_id: return True
+        else: return False
+    
+    async def on_submit(self, interaction: discord.Interaction):
+        if str(interaction.user.id) == str(self.custom_id):
+            msg = await interaction.channel.fetch_message(self.message_id)
+            clone_embed = msg.embeds[0]
+            
+            if (self.participants.value.replace(" ", "") != '-') and (self.participants.value != ''):
+                participants = ''
+                for line in self.participants.value.split("\n"):
+                    if line[0:2] != '> ': line='> '+ line
+                    participants = participants + "\n" + line
+            else:
+                participants = '-'
+            
+            if (self.reserves.value.replace(" ", "") != '-') and (self.reserves.value != ''):
+                reserves = ''
+                for line in self.reserves.value.split("\n"):
+                    if line[0:2] != '> ': line='> '+ line
+                    reserves = reserves + "\n" + line
+            else:
+                reserves = '-'
+            
+            member_count = participants.count('> ')
+            max_member_count = clone_embed.fields[1].name.split('/')[-1].replace(')', '')
+            
+            clone_embed.description = self.text.value
+            clone_embed.set_field_at(1, name=f'Participantes ({member_count}/{max_member_count})', value=participants, inline=True)
+            clone_embed.set_field_at(4, name=f'Reservas', value=reserves, inline=True)
+            
+            await edit_message_embed(msg, clone_embed)
+            await interaction.response.send_message(f"Evento editado com sucesso! {morango}", ephemeral=True)
     
 @bot.event
 async def on_ready():   
@@ -191,7 +238,8 @@ async def raid(ctx, nome_raid:str, data_hora:str, num_vagas_reservadas:int=0, de
         view.add_item(Button(custom_id=f'Participar_{multi_participation}', label='✅ Participar', style=discord.ButtonStyle.green))
         view.add_item(Button(custom_id=f'Recusar', label='❌ Recusar', style=discord.ButtonStyle.red))
         view.add_item(Button(custom_id=f'Tentativa', label='❔ Talvez', style=discord.ButtonStyle.blurple))
-        view.add_item(Button(custom_id=f'Deletar', label='Deletar evento', style=discord.ButtonStyle.grey))
+        view.add_item(Button(custom_id=f'Editar', label='Editar', style=discord.ButtonStyle.grey))
+        view.add_item(Button(custom_id=f'Deletar', label='Deletar evento', style=discord.ButtonStyle.red))
     
         await channel.send(content=f"{role.mention}", embed=embed, view=view)
         
@@ -240,6 +288,8 @@ async def gvg(ctx, data_hora:str, descricao:str=""):
         view.add_item(Button(custom_id=f'Participar_{multi_participation}', label='✅ Participar', style=discord.ButtonStyle.green))
         view.add_item(Button(custom_id=f'Recusar', label='❌ Recusar', style=discord.ButtonStyle.red))
         view.add_item(Button(custom_id=f'Tentativa', label='❔ Talvez', style=discord.ButtonStyle.blurple))        
+        view.add_item(Button(custom_id=f'Editar', label='Editar', style=discord.ButtonStyle.grey))
+        view.add_item(Button(custom_id=f'Deletar', label='Deletar evento', style=discord.ButtonStyle.red))
         await channel.send(content=f"{role}", embed=embed, view=view)
         
         events = discord.utils.get(ctx.guild.channels, id = channels['eventos'])
@@ -319,6 +369,19 @@ async def on_interaction(interaction):
             clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.user.display_name, index=3)
             await interaction.response.edit_message(embed=clone_embed)
             
+        elif custom_id == "Editar":
+            event_message = interaction.message
+            event_author=event_message.embeds[0].footer.text.split('\n')[0].replace('Evento criado por: ','')
+            
+            if (interaction.user.display_name == event_author) or (set([role.name for role in interaction.user.roles]).intersection(admin_roles)): 
+                modal = EditorEvento(str(interaction.user.id))
+                modal.text.default = event_message.embeds[0].description
+                modal.participants.default = event_message.embeds[0].fields[1].value
+                modal.reserves.default = event_message.embeds[0].fields[4].value
+                modal.message_id = interaction.message.id
+                await interaction.response.send_modal(modal)
+            else: interaction.response.send_message(content = f"Você não foi o criador do evento e/ou não é um admin!", ephemeral=True)
+        
         elif custom_id == "Deletar":
             event_message = interaction.message
             event_author=event_message.embeds[0].footer.text.split('\n')[0].replace('Evento criado por: ','')
