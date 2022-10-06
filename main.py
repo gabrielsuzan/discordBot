@@ -156,7 +156,7 @@ async def on_member_join(member):
         
         Enquanto aguarda, leia as {1.mention}.
         
-        Coloque o nome do seu personagem principal em {2.mention} para adiantar o processo.
+        Coloque o nome, classe e ilvl do seu personagem principal em {2.mention} para adiantar o processo.
         """.format(true_member_count,
                    discord.utils.get(channel.guild.channels, id = channels['regras']),
                    discord.utils.get(channel.guild.channels, id = channels['identifique-se'])),
