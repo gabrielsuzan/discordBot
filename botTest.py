@@ -87,6 +87,8 @@ class EditorEvento(Modal):
         super().__init__(title='Edição do evento:')
         self.custom_id = custom_id
         self.message_id = None
+        self.datetime = TextInput(label="Data/hora: (seguir padrão 30/12/2000 12:00)", required=False)
+        self.add_item(self.datetime)
         self.text = TextInput(label="Descrição do evento:", required=False)
         self.add_item(self.text)
         self.participants = TextInput(label="Participantes:", style=TextStyle(2), required=False)
@@ -261,7 +263,7 @@ async def gvg(ctx, data_hora:str, descricao:str=""):
                 dt_string = dt.strftime("%A, %d de %B de %Y - %H:%M")
     
                 # dias de semana
-                dt_string = dt_string.replace("Monday", "Segunda-Feira").replace("Tuesday", "Terça-Feira").replace("Wednesdey", "Quarta-Feira").replace("Thursday", "Quinta-Feira").replace("Friday", "Sexta-Feira").replace("Saturday", "Sábado").replace("Sunday", "Domingo")
+                dt_string = dt_string.replace("Monday", "Segunda-Feira").replace("Tuesday", "Terça-Feira").replace("Wednesday", "Quarta-Feira").replace("Thursday", "Quinta-Feira").replace("Friday", "Sexta-Feira").replace("Saturday", "Sábado").replace("Sunday", "Domingo")
                 # meses
                 dt_string = dt_string.replace("January", "Janeiro").replace("February", "Fevereiro").replace("March", "Março").replace("April", "Abril").replace("May", "Maio").replace("June", "Junho").replace("July", "Julho").replace("August", "Agosto").replace("September", "Setembro").replace("October", "Outubro").replace("November", "Novembro").replace("December", "Dezembro")
             except:
@@ -279,7 +281,7 @@ async def gvg(ctx, data_hora:str, descricao:str=""):
         embed.add_field(name="\❌ Recusado", value="-", inline=True)
         embed.add_field(name="\❔ Sem certeza", value="-", inline=True)
         embed.add_field(name="\🪑 Reserva", value="-", inline=True)
-        embed.set_footer(text=f"Evento criado por: {ctx.author.display_name}\nHora: ")
+        embed.set_footer(text=f"Evento criado por: {ctx.author}\nHora: ")
         embed.timestamp = datetime.now()
     
         multi_participation = str(gvg_preset[4])
@@ -332,10 +334,9 @@ async def on_interaction(interaction):
         if custom_id == 'Participar':
             try: multi_participation = interaction.data['custom_id'].split('_')[1]
             except: multi_participation = "False"
-    
+            
             field_name = interaction.message.embeds[0].fields[1].name
             actual_members, max_members = field_name[field_name.find("(")+1:field_name.find(")")].split('/')
-            
             
             if multi_participation == "True":    
                 roles = set(classes).intersection([role.name for role in interaction.user.roles])
@@ -358,7 +359,7 @@ async def on_interaction(interaction):
                     await interaction.response.edit_message(embed=clone_embed)
                 except:
                     print("Erro ao tentar editar mensagem do evento!")
-    
+                    
         elif custom_id == "Recusar":
             event_message = interaction.message
             clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.user.display_name, index=2)
@@ -368,7 +369,7 @@ async def on_interaction(interaction):
             event_message = interaction.message
             clone_embed = editEmbed(embed=event_message.embeds[0], author_name=interaction.user.display_name, index=3)
             await interaction.response.edit_message(embed=clone_embed)
-            
+        
         elif custom_id == "Editar":
             event_message = interaction.message
             event_author=event_message.embeds[0].footer.text.split('\n')[0].replace('Evento criado por: ','')
@@ -448,7 +449,7 @@ def editEmbed(embed, author_name, index, author_class=[]):
                 for member in edit_list:
                     if member.find(f" {author_name}") == -1: filtered_list.append("\n"+member)
                     else: 
-                        if index in (1, 4):
+                        if index in (1, 4) and (member.find("(") != -1 and member.find(")") != -1):
                             member_classes = member[member.find("(")+1:member.find(")")].split(',')
                             filtered_list.append(f"\n> {author_name} ({','.join(list(set(member_classes)|set(author_class)))})")     
                 filtered_str = ''.join(filtered_list)

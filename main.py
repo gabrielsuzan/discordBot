@@ -478,7 +478,7 @@ def editEmbed(embed, author_name, index, author_class=[]):
                 for member in edit_list:
                     if member.find(f" {author_name}") == -1: filtered_list.append("\n"+member)
                     else: 
-                        if index in (1, 4):
+                        if index in (1, 4) and (member.find("(") != -1 and member.find(")") != -1):
                             member_classes = member[member.find("(")+1:member.find(")")].split(',')
                             filtered_list.append(f"\n> {author_name} ({','.join(list(set(member_classes)|set(author_class)))})")     
                 filtered_str = ''.join(filtered_list)
